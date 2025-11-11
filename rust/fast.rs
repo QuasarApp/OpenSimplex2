@@ -2,7 +2,7 @@
     K.jpg's OpenSimplex 2, faster variant
 */
 
-use std::{num::Wrapping, sync::OnceLock};
+use core::num::Wrapping;
 
 const PRIME_X: i64 = 0x5205402B9270C86F;
 const PRIME_Y: i64 = 0x598CD327003817B5;
@@ -518,8 +518,7 @@ fn grad2(seed: Wrapping<i64>, xsvp: Wrapping<i64>, ysvp: Wrapping<i64>, dx: f32,
     hash *= HASH_MULTIPLIER;
     hash ^= hash.0 >> (64 - N_GRADS_2D_EXPONENT + 1);
     let gi = (hash.0 as i32 & ((N_GRADS_2D - 1) << 1)) as usize;
-    let grads = &getGradients().gradients2D;
-    grads[gi | 0] * dx + grads[gi | 1] * dy
+    GRAD2[gi | 0] * dx + GRAD2[gi | 1] * dy
 }
 
 fn grad3(
@@ -535,8 +534,7 @@ fn grad3(
     hash *= HASH_MULTIPLIER;
     hash ^= hash.0 >> (64 - N_GRADS_3D_EXPONENT + 2);
     let gi = (hash.0 as i32 & ((N_GRADS_3D - 1) << 2)) as usize;
-    let grads = &getGradients().gradients3D;
-    grads[gi | 0] * dx + grads[gi | 1] * dy + grads[gi | 2] * dz
+    GRAD3[gi | 0] * dx + GRAD3[gi | 1] * dy + GRAD3[gi | 2] * dz
 }
 
 fn grad4(
@@ -554,8 +552,7 @@ fn grad4(
     hash *= HASH_MULTIPLIER;
     hash ^= hash.0 >> (64 - N_GRADS_4D_EXPONENT + 2);
     let gi = (hash.0 as i32 & ((N_GRADS_4D - 1) << 2)) as usize;
-    let grads = &getGradients().gradients4D;
-    (grads[gi | 0] * dx + grads[gi | 1] * dy) + (grads[gi | 2] * dz + grads[gi | 3] * dw)
+    (GRAD4[gi | 0] * dx + GRAD4[gi | 1] * dy) + (GRAD4[gi | 2] * dz + GRAD4[gi | 3] * dw)
 }
 
 fn fastFloor(x: f64) -> i32 {
@@ -579,49 +576,38 @@ fn fastRound(x: f64) -> i32 {
     gradients
 */
 
-struct Gradients {
-    gradients2D: Vec<f32>,
-    gradients3D: Vec<f32>,
-    gradients4D: Vec<f32>,
-}
-
-static GRADIENTS: OnceLock<Gradients> = OnceLock::new();
-
-fn getGradients() -> &'static Gradients {
-    GRADIENTS.get_or_init(initGradients)
-}
-
-fn initGradients() -> Gradients {
-    let gradients2D: Vec<_> = GRAD2_SRC
-        .iter()
-        .map(|v| (v / NORMALIZER_2D) as f32)
-        .cycle()
-        .take((N_GRADS_2D * 2) as usize)
-        .collect();
-
-    let gradients3D: Vec<_> = GRAD3_SRC
-        .iter()
-        .map(|v| (v / NORMALIZER_3D) as f32)
-        .cycle()
-        .take((N_GRADS_3D * 4) as usize)
-        .collect();
-
-    let gradients4D: Vec<_> = GRAD4_SRC
-        .iter()
-        .map(|v| (v / NORMALIZER_4D) as f32)
-        .cycle()
-        .take((N_GRADS_4D * 4) as usize)
-        .collect();
-
-    Gradients {
-        gradients2D,
-        gradients3D,
-        gradients4D,
+static GRAD2: [f32; N_GRADS_2D as usize * 2] = {
+    let mut data = [0.0; N_GRADS_2D as usize * 2];
+    let mut i = 0;
+    while i < data.len() {
+        data[i] = (GRAD2_SRC[i % GRAD2_SRC.len()] / NORMALIZER_2D) as f32;
+        i += 1;
     }
-}
+    data
+};
+
+static GRAD3: [f32; N_GRADS_3D as usize * 4] = {
+    let mut data = [0.0; N_GRADS_3D as usize * 4];
+    let mut i = 0;
+    while i < data.len() {
+        data[i] = (GRAD3_SRC[i % GRAD3_SRC.len()] / NORMALIZER_3D) as f32;
+        i += 1;
+    }
+    data
+};
+
+static GRAD4: [f32; N_GRADS_4D as usize * 4] = {
+    let mut data = [0.0; N_GRADS_4D as usize * 4];
+    let mut i = 0;
+    while i < data.len() {
+        data[i] = (GRAD4_SRC[i % GRAD4_SRC.len()] / NORMALIZER_4D) as f32;
+        i += 1;
+    }
+    data
+};
 
 #[rustfmt::skip]
-const GRAD2_SRC: &[f64] = &[
+static GRAD2_SRC: [f64; 48] = [
      0.38268343236509,   0.923879532511287,
      0.923879532511287,  0.38268343236509,
      0.923879532511287, -0.38268343236509,
@@ -650,7 +636,7 @@ const GRAD2_SRC: &[f64] = &[
 ];
 
 #[rustfmt::skip]
-const GRAD3_SRC: &[f64] = &[
+static GRAD3_SRC: [f64; 192] = [
      2.22474487139,       2.22474487139,      -1.0,                 0.0,
      2.22474487139,       2.22474487139,       1.0,                 0.0,
      3.0862664687972017,  1.1721513422464978,  0.0,                 0.0,
@@ -703,7 +689,7 @@ const GRAD3_SRC: &[f64] = &[
 ];
 
 #[rustfmt::skip]
-const GRAD4_SRC: &[f64] = &[
+static GRAD4_SRC: [f64; 640] = [
     -0.6740059517812944,   -0.3239847771997537,   -0.3239847771997537,    0.5794684678643381,
     -0.7504883828755602,   -0.4004672082940195,    0.15296486218853164,   0.5029860367700724,
     -0.7504883828755602,    0.15296486218853164,  -0.4004672082940195,    0.5029860367700724,
