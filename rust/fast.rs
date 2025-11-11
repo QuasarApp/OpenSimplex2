@@ -2,7 +2,7 @@
     K.jpg's OpenSimplex 2, faster variant
 */
 
-use std::{num::Wrapping, sync::Once};
+use std::{num::Wrapping, sync::OnceLock};
 
 const PRIME_X: i64 = 0x5205402B9270C86F;
 const PRIME_Y: i64 = 0x598CD327003817B5;
@@ -585,20 +585,15 @@ struct Gradients {
     gradients4D: Vec<f32>,
 }
 
-static mut GRADIENTS: (Once, Option<Gradients>) = (Once::new(), None);
+static GRADIENTS: OnceLock<Gradients> = OnceLock::new();
 
 fn getGradients() -> &'static Gradients {
-    unsafe {
-        GRADIENTS.0.call_once(|| {
-            GRADIENTS.1 = Some(initGradients());
-        });
-        GRADIENTS.1.as_ref().unwrap()
-    }
+    GRADIENTS.get_or_init(initGradients)
 }
 
 fn initGradients() -> Gradients {
     let gradients2D: Vec<_> = GRAD2_SRC
-        .into_iter()
+        .iter()
         .map(|v| (v / NORMALIZER_2D) as f32)
         .collect::<Vec<_>>() // cache divisions
         .into_iter()
@@ -607,7 +602,7 @@ fn initGradients() -> Gradients {
         .collect();
 
     let gradients3D: Vec<_> = GRAD3_SRC
-        .into_iter()
+        .iter()
         .map(|v| (v / NORMALIZER_3D) as f32)
         .collect::<Vec<_>>() // cache divisions
         .into_iter()
@@ -616,7 +611,7 @@ fn initGradients() -> Gradients {
         .collect();
 
     let gradients4D: Vec<_> = GRAD4_SRC
-        .into_iter()
+        .iter()
         .map(|v| (v / NORMALIZER_4D) as f32)
         .collect::<Vec<_>>() // cache divisions
         .into_iter()
@@ -877,3 +872,105 @@ const GRAD4_SRC: &[f64] = &[
      0.7821684431180708,    0.4321472685365301,    0.4321472685365301,   -0.12128480194602098,
      0.753341017856078,     0.37968289875261624,   0.37968289875261624,   0.37968289875261624,
 ];
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const PRECISION: f32 = 1e-6;
+
+    #[test]
+    fn noise2_deterministic() {
+        let a = noise2(42, 1.2345, -6.789);
+        let b = noise2(42, 1.2345, -6.789);
+        assert!(
+            (a - -0.5491986).abs() < PRECISION,
+            "noise2 returned unexpected value - {a}"
+        );
+        assert!(
+            (a - b).abs() < PRECISION,
+            "noise2 should be deterministic for same seed and inputs"
+        );
+    }
+
+    #[test]
+    fn noise2_different_seed() {
+        let a = noise2(42, 0.5, 0.5);
+        let b = noise2(43, 0.5, 0.5);
+        assert!(
+            (a - b).abs() > PRECISION,
+            "noise2 should return different values for different seeds - {a} vs {b}"
+        );
+        assert!(
+            (a - -0.08086589).abs() < PRECISION,
+            "noise2 returned unexpected value - {a}"
+        );
+        assert!(
+            (b - 0.6142375).abs() < PRECISION,
+            "noise2 returned unexpected value - {b}"
+        );
+    }
+
+    #[test]
+    fn noise3_deterministic() {
+        let a = noise3_ImproveXY(321, -1.0, 2.0, 3.0);
+        let b = noise3_ImproveXY(321, -1.0, 2.0, 3.0);
+        assert!(
+            (a - b).abs() < PRECISION,
+            "noise3 should be deterministic for same seed and inputs, got {a} and {b}"
+        );
+        assert!(
+            (a - 0.67525643).abs() < PRECISION,
+            "noise3 returned unexpected value - {a}"
+        );
+    }
+
+    #[test]
+    fn noise3_different_seed() {
+        let a = noise3_ImproveXY(1, 0.1, 0.2, 0.3);
+        let b = noise3_ImproveXY(2, 0.1, 0.2, 0.3);
+        assert!(
+            (a - b).abs() > PRECISION,
+            "noise3 should return different values for different seeds - {a} vs {b}"
+        );
+        assert!(
+            (a - 0.06824334).abs() < PRECISION,
+            "noise3 returned unexpected value - {a}"
+        );
+        assert!(
+            (b - 0.22377315).abs() < PRECISION,
+            "noise3 returned unexpected value - {b}"
+        );
+    }
+
+    #[test]
+    fn noise4_deterministic() {
+        let a = noise4_ImproveXYZ(9, 2.0, 3.0, 5.0, 6.0);
+        let b = noise4_ImproveXYZ(9, 2.0, 3.0, 5.0, 6.0);
+        assert!(
+            (a - b).abs() < PRECISION,
+            "noise4 should be deterministic for same seed and inputs, got {a} and {b}"
+        );
+        assert!(
+            (a - -0.1311275).abs() < PRECISION,
+            "noise4 returned unexpected value - {a}"
+        );
+    }
+
+    #[test]
+    fn noise4_different_seed() {
+        let a = noise4_ImproveXYZ(1, 0.1, 0.2, 0.3, 0.4);
+        let b = noise4_ImproveXYZ(2, 0.1, 0.2, 0.3, 0.4);
+        assert!(
+            (a - b).abs() > PRECISION,
+            "noise4 should return different values for different seeds - {a} vs {b}"
+        );
+        assert!(
+            (a - -0.07606829).abs() < PRECISION,
+            "noise4 returned unexpected value - {a}"
+        );
+        assert!(
+            (b - 0.21148828).abs() < PRECISION,
+            "noise4 returned unexpected value - {b}"
+        );
+    }
+}

@@ -2,6 +2,7 @@
 name = "opensimplex2"
 version = "1.1.0"
 edition = "2021"
+rust-version = "1.70.0"
 
 description = "Port of OpenSimplex2"
 authors = ["KdotJPG"]
@@ -19,3 +20,17 @@ include = [
 [lib]
 path = "rust/lib.rs"
 crate-type = ["rlib", "staticlib", "cdylib"]
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+
+[lints]
+clippy.excessive_precision = "allow"
+clippy.identity_op = "allow"
+clippy.too_many_arguments = "allow"
+clippy.approx_constant = "allow"
+clippy.suboptimal_flops = "allow"
+
