@@ -1,4 +1,4 @@
-use std::ffi::{c_double, c_float, c_longlong};
+use core::ffi::{c_double, c_float, c_longlong};
 
 use crate::{fast, smooth};
 

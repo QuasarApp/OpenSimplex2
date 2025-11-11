@@ -2,7 +2,7 @@
     K.jpg's OpenSimplex 2, smooth variant ("SuperSimplex")
 */
 
-use std::{num::Wrapping, sync::Once};
+use core::num::Wrapping;
 
 const PRIME_X: i64 = 0x5205402B9270C86F;
 const PRIME_Y: i64 = 0x598CD327003817B5;
@@ -692,13 +692,11 @@ fn noise4_UnskewedBase(seed: i64, xs: f64, ys: f64, zs: f64, ws: f64) -> f32 {
         | ((fastFloor(ws * 4.0) & 3) << 6);
 
     // Point contributions
-    let staticData = getStaticData();
     let mut value = 0.0;
-    let secondaryIndexStartAndStop = staticData.lookup4DA[index as usize];
+    let secondaryIndexStartAndStop = LOOKUP4DA[index as usize];
     let secondaryIndexStart = secondaryIndexStartAndStop & 0xFFFF;
     let secondaryIndexStop = secondaryIndexStartAndStop >> 16;
-    for i in secondaryIndexStart..secondaryIndexStop {
-        let c = &staticData.lookup4DB[i];
+    for c in &LOOKUP4DB[secondaryIndexStart..secondaryIndexStop] {
         let dx = xi + c.dx;
         let dy = yi + c.dy;
         let dz = zi + c.dz;
@@ -734,8 +732,7 @@ fn grad2(seed: Wrapping<i64>, xsvp: Wrapping<i64>, ysvp: Wrapping<i64>, dx: f32,
     hash *= HASH_MULTIPLIER;
     hash ^= hash.0 >> (64 - N_GRADS_2D_EXPONENT + 1);
     let gi = (hash.0 as i32 & ((N_GRADS_2D - 1) << 1)) as usize;
-    let grads = &getStaticData().gradients2D;
-    grads[gi | 0] * dx + grads[gi | 1] * dy
+    GRAD2[gi | 0] * dx + GRAD2[gi | 1] * dy
 }
 
 fn grad3(
@@ -751,8 +748,7 @@ fn grad3(
     hash *= HASH_MULTIPLIER;
     hash ^= hash.0 >> (64 - N_GRADS_3D_EXPONENT + 2);
     let gi = (hash.0 as i32 & ((N_GRADS_3D - 1) << 2)) as usize;
-    let grads = &getStaticData().gradients3D;
-    grads[gi | 0] * dx + grads[gi | 1] * dy + grads[gi | 2] * dz
+    GRAD3[gi | 0] * dx + GRAD3[gi | 1] * dy + GRAD3[gi | 2] * dz
 }
 
 fn grad4(
@@ -770,8 +766,7 @@ fn grad4(
     hash *= HASH_MULTIPLIER;
     hash ^= hash.0 >> (64 - N_GRADS_4D_EXPONENT + 2);
     let gi = (hash.0 as i32 & ((N_GRADS_4D - 1) << 2)) as usize;
-    let grads = &getStaticData().gradients4D;
-    (grads[gi | 0] * dx + grads[gi | 1] * dy) + (grads[gi | 2] * dz + grads[gi | 3] * dw)
+    (GRAD4[gi | 0] * dx + GRAD4[gi | 1] * dy) + (GRAD4[gi | 2] * dz + GRAD4[gi | 3] * dw)
 }
 
 fn fastFloor(x: f64) -> i32 {
@@ -787,7 +782,7 @@ fn fastFloor(x: f64) -> i32 {
     Lookup Tables & Gradients
 */
 
-#[derive(Clone, Default)]
+#[derive(Copy, Clone, Default)]
 struct LatticeVertex4D {
     pub dx: f32,
     pub dy: f32,
@@ -800,13 +795,13 @@ struct LatticeVertex4D {
 }
 
 impl LatticeVertex4D {
-    pub fn new(xsv: i32, ysv: i32, zsv: i32, wsv: i32) -> Self {
+    pub const fn new(xsv: i32, ysv: i32, zsv: i32, wsv: i32) -> Self {
         let ssv = (xsv + ysv + zsv + wsv) as f32 * UNSKEW_4D;
         Self {
-            xsvp: (Wrapping(xsv as i64) * Wrapping(PRIME_X)).0,
-            ysvp: (Wrapping(ysv as i64) * Wrapping(PRIME_Y)).0,
-            zsvp: (Wrapping(zsv as i64) * Wrapping(PRIME_Z)).0,
-            wsvp: (Wrapping(wsv as i64) * Wrapping(PRIME_W)).0,
+            xsvp: (xsv as i64).wrapping_mul(PRIME_X),
+            ysvp: (ysv as i64).wrapping_mul(PRIME_Y),
+            zsvp: (zsv as i64).wrapping_mul(PRIME_Z),
+            wsvp: (wsv as i64).wrapping_mul(PRIME_W),
             dx: -xsv as f32 - ssv,
             dy: -ysv as f32 - ssv,
             dz: -zsv as f32 - ssv,
@@ -815,86 +810,90 @@ impl LatticeVertex4D {
     }
 }
 
-struct StaticData {
-    gradients2D: Vec<f32>,
-    gradients3D: Vec<f32>,
-    gradients4D: Vec<f32>,
-
-    lookup4DA: Vec<usize>,
-    lookup4DB: Vec<LatticeVertex4D>,
-}
-
-static mut STATIC_DATA: (Once, Option<StaticData>) = (Once::new(), None);
-
-fn getStaticData() -> &'static StaticData {
-    unsafe {
-        STATIC_DATA.0.call_once(|| {
-            STATIC_DATA.1 = Some(initStaticData());
-        });
-        STATIC_DATA.1.as_ref().unwrap()
+static GRAD2: [f32; N_GRADS_2D as usize * 2] = {
+    let mut data = [0.0; N_GRADS_2D as usize * 2];
+    let mut i = 0;
+    while i < data.len() {
+        data[i] = (GRAD2_SRC[i % GRAD2_SRC.len()] / NORMALIZER_2D) as f32;
+        i += 1;
     }
-}
+    data
+};
 
-fn initStaticData() -> StaticData {
-    let gradients2D: Vec<_> = GRAD2_SRC
-        .into_iter()
-        .map(|v| (v / NORMALIZER_2D) as f32)
-        .collect::<Vec<_>>() // cache divisions
-        .into_iter()
-        .cycle()
-        .take((N_GRADS_2D * 2) as usize)
-        .collect();
+static GRAD3: [f32; N_GRADS_3D as usize * 4] = {
+    let mut data = [0.0; N_GRADS_3D as usize * 4];
+    let mut i = 0;
+    while i < data.len() {
+        data[i] = (GRAD3_SRC[i % GRAD3_SRC.len()] / NORMALIZER_3D) as f32;
+        i += 1;
+    }
+    data
+};
 
-    let gradients3D: Vec<_> = GRAD3_SRC
-        .into_iter()
-        .map(|v| (v / NORMALIZER_3D) as f32)
-        .collect::<Vec<_>>() // cache divisions
-        .into_iter()
-        .cycle()
-        .take((N_GRADS_3D * 4) as usize)
-        .collect();
+static GRAD4: [f32; N_GRADS_4D as usize * 4] = {
+    let mut data = [0.0; N_GRADS_4D as usize * 4];
+    let mut i = 0;
+    while i < data.len() {
+        data[i] = (GRAD4_SRC[i % GRAD4_SRC.len()] / NORMALIZER_4D) as f32;
+        i += 1;
+    }
+    data
+};
 
-    let gradients4D: Vec<_> = GRAD4_SRC
-        .into_iter()
-        .map(|v| (v / NORMALIZER_4D) as f32)
-        .collect::<Vec<_>>() // cache divisions
-        .into_iter()
-        .cycle()
-        .take((N_GRADS_4D * 4) as usize)
-        .collect();
+const N_LATTICE_VERTICES_TOTAL: usize = {
+    let mut i = 0;
+    let mut value = 0;
+    while i < LOOKUP_4D_VERTEX_CODES.len() {
+        value += LOOKUP_4D_VERTEX_CODES[i].len();
+        i += 1;
+    }
+    value
+};
 
-    let nLatticeVerticesTotal = LOOKUP_4D_VERTEX_CODES.iter().map(|v| v.len()).sum();
-    let latticeVerticesByCode: Vec<_> = (0..256)
-        .map(|i| {
-            let cx = ((i >> 0) & 3) - 1;
-            let cy = ((i >> 2) & 3) - 1;
-            let cz = ((i >> 4) & 3) - 1;
-            let cw = ((i >> 6) & 3) - 1;
-            LatticeVertex4D::new(cx, cy, cz, cw)
-        })
-        .collect();
-    let mut lookup4DA = vec![0; 256];
-    let mut lookup4DB = vec![Default::default(); nLatticeVerticesTotal];
+static LATTICE_VERTICES_BY_CODE: [LatticeVertex4D; 256] = {
+    let mut data = [LatticeVertex4D::new(0, 0, 0, 0); 256];
+    let mut i = 0;
+    while i < data.len() {
+        let cx = ((i as i32 >> 0) & 3) - 1;
+        let cy = ((i as i32 >> 2) & 3) - 1;
+        let cz = ((i as i32 >> 4) & 3) - 1;
+        let cw = ((i as i32 >> 6) & 3) - 1;
+        data[i] = LatticeVertex4D::new(cx, cy, cz, cw);
+        i += 1;
+    }
+    data
+};
+
+static LOOKUP4DA: [usize; 256] = {
+    let mut data = [0; 256];
+    let mut i = 0;
     let mut j = 0;
-    for i in 0..256 {
-        lookup4DA[i] = j | ((j + LOOKUP_4D_VERTEX_CODES[i].len()) << 16);
-        for k in 0..LOOKUP_4D_VERTEX_CODES[i].len() {
-            lookup4DB[j] = latticeVerticesByCode[LOOKUP_4D_VERTEX_CODES[i][k] as usize].clone();
-            j += 1;
-        }
+    while i < 256 {
+        data[i] = j | ((j + LOOKUP_4D_VERTEX_CODES[i].len()) << 16);
+        j += LOOKUP_4D_VERTEX_CODES[i].len();
+        i += 1;
     }
+    data
+};
 
-    StaticData {
-        gradients2D,
-        gradients3D,
-        gradients4D,
-        lookup4DA,
-        lookup4DB,
+static LOOKUP4DB: [LatticeVertex4D; N_LATTICE_VERTICES_TOTAL] = {
+    let mut data = [LatticeVertex4D::new(0, 0, 0, 0); N_LATTICE_VERTICES_TOTAL];
+    let mut i = 0;
+    let mut j = 0;
+    while i < 256 {
+        let mut k = 0;
+        while k < LOOKUP_4D_VERTEX_CODES[i].len() {
+            data[j] = LATTICE_VERTICES_BY_CODE[LOOKUP_4D_VERTEX_CODES[i][k] as usize];
+            j += 1;
+            k += 1;
+        }
+        i += 1;
     }
-}
+    data
+};
 
 #[rustfmt::skip]
-const GRAD2_SRC: &[f64] = &[
+static GRAD2_SRC: [f64; 48] = [
     0.38268343236509,   0.923879532511287,
     0.923879532511287,  0.38268343236509,
     0.923879532511287, -0.38268343236509,
@@ -923,7 +922,7 @@ const GRAD2_SRC: &[f64] = &[
 ];
 
 #[rustfmt::skip]
-const GRAD3_SRC: &[f64] = &[
+static GRAD3_SRC: [f64; 192] = [
     2.22474487139,       2.22474487139,      -1.0,                 0.0,
     2.22474487139,       2.22474487139,       1.0,                 0.0,
     3.0862664687972017,  1.1721513422464978,  0.0,                 0.0,
@@ -976,7 +975,7 @@ const GRAD3_SRC: &[f64] = &[
 ];
 
 #[rustfmt::skip]
-const GRAD4_SRC: &[f64] = &[
+static GRAD4_SRC: [f64; 640] = [
     -0.6740059517812944,   -0.3239847771997537,   -0.3239847771997537,    0.5794684678643381,
     -0.7504883828755602,   -0.4004672082940195,    0.15296486218853164,   0.5029860367700724,
     -0.7504883828755602,    0.15296486218853164,  -0.4004672082940195,    0.5029860367700724,
@@ -1141,7 +1140,7 @@ const GRAD4_SRC: &[f64] = &[
 ];
 
 #[rustfmt::skip]
-const LOOKUP_4D_VERTEX_CODES: &[&[u8]] = &[
+static LOOKUP_4D_VERTEX_CODES: [&[u8]; 256] = [
     &[0x15, 0x45, 0x51, 0x54, 0x55, 0x56, 0x59, 0x5A, 0x65, 0x66, 0x69, 0x6A, 0x95, 0x96, 0x99, 0x9A, 0xA5, 0xA6, 0xA9, 0xAA],
     &[0x15, 0x45, 0x51, 0x55, 0x56, 0x59, 0x5A, 0x65, 0x66, 0x6A, 0x95, 0x96, 0x9A, 0xA6, 0xAA],
     &[0x01, 0x05, 0x11, 0x15, 0x41, 0x45, 0x51, 0x55, 0x56, 0x5A, 0x66, 0x6A, 0x96, 0x9A, 0xA6, 0xAA],
@@ -1399,3 +1398,106 @@ const LOOKUP_4D_VERTEX_CODES: &[&[u8]] = &[
     &[0x55, 0x59, 0x65, 0x69, 0x6A, 0x95, 0x99, 0x9A, 0xA5, 0xA6, 0xA9, 0xAA, 0xAE, 0xBA, 0xEA],
     &[0x55, 0x56, 0x59, 0x5A, 0x65, 0x66, 0x69, 0x6A, 0x95, 0x96, 0x99, 0x9A, 0xA5, 0xA6, 0xA9, 0xAA, 0xAB, 0xAE, 0xBA, 0xEA],
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const PRECISION: f32 = 1e-6;
+
+    #[test]
+    fn noise2_deterministic() {
+        let a = noise2(42, 1.2345, -6.789);
+        let b = noise2(42, 1.2345, -6.789);
+        assert!(
+            (a - -0.32238963).abs() < PRECISION,
+            "noise2 returned unexpected value - {a}"
+        );
+        assert!(
+            (a - b).abs() < PRECISION,
+            "noise2 should be deterministic for same seed and inputs"
+        );
+    }
+
+    #[test]
+    fn noise2_different_seed() {
+        let a = noise2(42, 0.5, 0.5);
+        let b = noise2(43, 0.5, 0.5);
+        assert!(
+            (a - b).abs() > PRECISION,
+            "noise2 should return different values for different seeds - {a} vs {b}"
+        );
+        assert!(
+            (a - -0.04904862).abs() < PRECISION,
+            "noise2 returned unexpected value - {a}"
+        );
+        assert!(
+            (b - 0.3536184).abs() < PRECISION,
+            "noise2 returned unexpected value - {b}"
+        );
+    }
+
+    #[test]
+    fn noise3_deterministic() {
+        let a = noise3_ImproveXY(321, -1.0, 2.0, 3.0);
+        let b = noise3_ImproveXY(321, -1.0, 2.0, 3.0);
+        assert!(
+            (a - b).abs() < PRECISION,
+            "noise3 should be deterministic for same seed and inputs, got {a} and {b}"
+        );
+        assert!(
+            (a - 0.53415114).abs() < PRECISION,
+            "noise3 returned unexpected value - {a}"
+        );
+    }
+
+    #[test]
+    fn noise3_different_seed() {
+        let a = noise3_ImproveXY(1, 0.1, 0.2, 0.3);
+        let b = noise3_ImproveXY(2, 0.1, 0.2, 0.3);
+        assert!(
+            (a - b).abs() > PRECISION,
+            "noise3 should return different values for different seeds - {a} vs {b}"
+        );
+        assert!(
+            (a - 0.045763396).abs() < PRECISION,
+            "noise3 returned unexpected value - {a}"
+        );
+        assert!(
+            (b - 0.13154802).abs() < PRECISION,
+            "noise3 returned unexpected value - {b}"
+        );
+    }
+
+    #[test]
+    fn noise4_deterministic() {
+        let a = noise4_ImproveXYZ(9, 2.0, 3.0, 5.0, 6.0);
+        let b = noise4_ImproveXYZ(9, 2.0, 3.0, 5.0, 6.0);
+        assert!(
+            (a - b).abs() < PRECISION,
+            "noise4 should be deterministic for same seed and inputs, got {a} and {b}"
+        );
+        assert!(
+            (a - -0.14588071).abs() < PRECISION,
+            "noise4 returned unexpected value - {a}"
+        );
+    }
+
+    #[test]
+    fn noise4_different_seed() {
+        let a = noise4_ImproveXYZ(1, 0.1, 0.2, 0.3, 0.4);
+        let b = noise4_ImproveXYZ(2, 0.1, 0.2, 0.3, 0.4);
+        assert!(
+            (a - b).abs() > PRECISION,
+            "noise4 should return different values for different seeds - {a} vs {b}"
+        );
+        assert!(
+            (a - 0.06384007).abs() < PRECISION,
+            "noise4 returned unexpected value - {a}"
+        );
+        assert!(
+            (b - 0.29178715).abs() < PRECISION,
+            "noise4 returned unexpected value - {b}"
+        );
+    }
+}

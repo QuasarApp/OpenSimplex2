@@ -2,7 +2,7 @@
     K.jpg's OpenSimplex 2, faster variant
 */
 
-use std::{num::Wrapping, sync::Once};
+use core::num::Wrapping;
 
 const PRIME_X: i64 = 0x5205402B9270C86F;
 const PRIME_Y: i64 = 0x598CD327003817B5;
@@ -518,8 +518,7 @@ fn grad2(seed: Wrapping<i64>, xsvp: Wrapping<i64>, ysvp: Wrapping<i64>, dx: f32,
     hash *= HASH_MULTIPLIER;
     hash ^= hash.0 >> (64 - N_GRADS_2D_EXPONENT + 1);
     let gi = (hash.0 as i32 & ((N_GRADS_2D - 1) << 1)) as usize;
-    let grads = &getGradients().gradients2D;
-    grads[gi | 0] * dx + grads[gi | 1] * dy
+    GRAD2[gi | 0] * dx + GRAD2[gi | 1] * dy
 }
 
 fn grad3(
@@ -535,8 +534,7 @@ fn grad3(
     hash *= HASH_MULTIPLIER;
     hash ^= hash.0 >> (64 - N_GRADS_3D_EXPONENT + 2);
     let gi = (hash.0 as i32 & ((N_GRADS_3D - 1) << 2)) as usize;
-    let grads = &getGradients().gradients3D;
-    grads[gi | 0] * dx + grads[gi | 1] * dy + grads[gi | 2] * dz
+    GRAD3[gi | 0] * dx + GRAD3[gi | 1] * dy + GRAD3[gi | 2] * dz
 }
 
 fn grad4(
@@ -554,8 +552,7 @@ fn grad4(
     hash *= HASH_MULTIPLIER;
     hash ^= hash.0 >> (64 - N_GRADS_4D_EXPONENT + 2);
     let gi = (hash.0 as i32 & ((N_GRADS_4D - 1) << 2)) as usize;
-    let grads = &getGradients().gradients4D;
-    (grads[gi | 0] * dx + grads[gi | 1] * dy) + (grads[gi | 2] * dz + grads[gi | 3] * dw)
+    (GRAD4[gi | 0] * dx + GRAD4[gi | 1] * dy) + (GRAD4[gi | 2] * dz + GRAD4[gi | 3] * dw)
 }
 
 fn fastFloor(x: f64) -> i32 {
@@ -579,60 +576,38 @@ fn fastRound(x: f64) -> i32 {
     gradients
 */
 
-struct Gradients {
-    gradients2D: Vec<f32>,
-    gradients3D: Vec<f32>,
-    gradients4D: Vec<f32>,
-}
-
-static mut GRADIENTS: (Once, Option<Gradients>) = (Once::new(), None);
-
-fn getGradients() -> &'static Gradients {
-    unsafe {
-        GRADIENTS.0.call_once(|| {
-            GRADIENTS.1 = Some(initGradients());
-        });
-        GRADIENTS.1.as_ref().unwrap()
+static GRAD2: [f32; N_GRADS_2D as usize * 2] = {
+    let mut data = [0.0; N_GRADS_2D as usize * 2];
+    let mut i = 0;
+    while i < data.len() {
+        data[i] = (GRAD2_SRC[i % GRAD2_SRC.len()] / NORMALIZER_2D) as f32;
+        i += 1;
     }
-}
+    data
+};
 
-fn initGradients() -> Gradients {
-    let gradients2D: Vec<_> = GRAD2_SRC
-        .into_iter()
-        .map(|v| (v / NORMALIZER_2D) as f32)
-        .collect::<Vec<_>>() // cache divisions
-        .into_iter()
-        .cycle()
-        .take((N_GRADS_2D * 2) as usize)
-        .collect();
-
-    let gradients3D: Vec<_> = GRAD3_SRC
-        .into_iter()
-        .map(|v| (v / NORMALIZER_3D) as f32)
-        .collect::<Vec<_>>() // cache divisions
-        .into_iter()
-        .cycle()
-        .take((N_GRADS_3D * 4) as usize)
-        .collect();
-
-    let gradients4D: Vec<_> = GRAD4_SRC
-        .into_iter()
-        .map(|v| (v / NORMALIZER_4D) as f32)
-        .collect::<Vec<_>>() // cache divisions
-        .into_iter()
-        .cycle()
-        .take((N_GRADS_4D * 4) as usize)
-        .collect();
-
-    Gradients {
-        gradients2D,
-        gradients3D,
-        gradients4D,
+static GRAD3: [f32; N_GRADS_3D as usize * 4] = {
+    let mut data = [0.0; N_GRADS_3D as usize * 4];
+    let mut i = 0;
+    while i < data.len() {
+        data[i] = (GRAD3_SRC[i % GRAD3_SRC.len()] / NORMALIZER_3D) as f32;
+        i += 1;
     }
-}
+    data
+};
+
+static GRAD4: [f32; N_GRADS_4D as usize * 4] = {
+    let mut data = [0.0; N_GRADS_4D as usize * 4];
+    let mut i = 0;
+    while i < data.len() {
+        data[i] = (GRAD4_SRC[i % GRAD4_SRC.len()] / NORMALIZER_4D) as f32;
+        i += 1;
+    }
+    data
+};
 
 #[rustfmt::skip]
-const GRAD2_SRC: &[f64] = &[
+static GRAD2_SRC: [f64; 48] = [
      0.38268343236509,   0.923879532511287,
      0.923879532511287,  0.38268343236509,
      0.923879532511287, -0.38268343236509,
@@ -661,7 +636,7 @@ const GRAD2_SRC: &[f64] = &[
 ];
 
 #[rustfmt::skip]
-const GRAD3_SRC: &[f64] = &[
+static GRAD3_SRC: [f64; 192] = [
      2.22474487139,       2.22474487139,      -1.0,                 0.0,
      2.22474487139,       2.22474487139,       1.0,                 0.0,
      3.0862664687972017,  1.1721513422464978,  0.0,                 0.0,
@@ -714,7 +689,7 @@ const GRAD3_SRC: &[f64] = &[
 ];
 
 #[rustfmt::skip]
-const GRAD4_SRC: &[f64] = &[
+static GRAD4_SRC: [f64; 640] = [
     -0.6740059517812944,   -0.3239847771997537,   -0.3239847771997537,    0.5794684678643381,
     -0.7504883828755602,   -0.4004672082940195,    0.15296486218853164,   0.5029860367700724,
     -0.7504883828755602,    0.15296486218853164,  -0.4004672082940195,    0.5029860367700724,
@@ -877,3 +852,105 @@ const GRAD4_SRC: &[f64] = &[
      0.7821684431180708,    0.4321472685365301,    0.4321472685365301,   -0.12128480194602098,
      0.753341017856078,     0.37968289875261624,   0.37968289875261624,   0.37968289875261624,
 ];
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const PRECISION: f32 = 1e-6;
+
+    #[test]
+    fn noise2_deterministic() {
+        let a = noise2(42, 1.2345, -6.789);
+        let b = noise2(42, 1.2345, -6.789);
+        assert!(
+            (a - -0.5491986).abs() < PRECISION,
+            "noise2 returned unexpected value - {a}"
+        );
+        assert!(
+            (a - b).abs() < PRECISION,
+            "noise2 should be deterministic for same seed and inputs"
+        );
+    }
+
+    #[test]
+    fn noise2_different_seed() {
+        let a = noise2(42, 0.5, 0.5);
+        let b = noise2(43, 0.5, 0.5);
+        assert!(
+            (a - b).abs() > PRECISION,
+            "noise2 should return different values for different seeds - {a} vs {b}"
+        );
+        assert!(
+            (a - -0.08086589).abs() < PRECISION,
+            "noise2 returned unexpected value - {a}"
+        );
+        assert!(
+            (b - 0.6142375).abs() < PRECISION,
+            "noise2 returned unexpected value - {b}"
+        );
+    }
+
+    #[test]
+    fn noise3_deterministic() {
+        let a = noise3_ImproveXY(321, -1.0, 2.0, 3.0);
+        let b = noise3_ImproveXY(321, -1.0, 2.0, 3.0);
+        assert!(
+            (a - b).abs() < PRECISION,
+            "noise3 should be deterministic for same seed and inputs, got {a} and {b}"
+        );
+        assert!(
+            (a - 0.67525643).abs() < PRECISION,
+            "noise3 returned unexpected value - {a}"
+        );
+    }
+
+    #[test]
+    fn noise3_different_seed() {
+        let a = noise3_ImproveXY(1, 0.1, 0.2, 0.3);
+        let b = noise3_ImproveXY(2, 0.1, 0.2, 0.3);
+        assert!(
+            (a - b).abs() > PRECISION,
+            "noise3 should return different values for different seeds - {a} vs {b}"
+        );
+        assert!(
+            (a - 0.06824334).abs() < PRECISION,
+            "noise3 returned unexpected value - {a}"
+        );
+        assert!(
+            (b - 0.22377315).abs() < PRECISION,
+            "noise3 returned unexpected value - {b}"
+        );
+    }
+
+    #[test]
+    fn noise4_deterministic() {
+        let a = noise4_ImproveXYZ(9, 2.0, 3.0, 5.0, 6.0);
+        let b = noise4_ImproveXYZ(9, 2.0, 3.0, 5.0, 6.0);
+        assert!(
+            (a - b).abs() < PRECISION,
+            "noise4 should be deterministic for same seed and inputs, got {a} and {b}"
+        );
+        assert!(
+            (a - -0.1311275).abs() < PRECISION,
+            "noise4 returned unexpected value - {a}"
+        );
+    }
+
+    #[test]
+    fn noise4_different_seed() {
+        let a = noise4_ImproveXYZ(1, 0.1, 0.2, 0.3, 0.4);
+        let b = noise4_ImproveXYZ(2, 0.1, 0.2, 0.3, 0.4);
+        assert!(
+            (a - b).abs() > PRECISION,
+            "noise4 should return different values for different seeds - {a} vs {b}"
+        );
+        assert!(
+            (a - -0.07606829).abs() < PRECISION,
+            "noise4 returned unexpected value - {a}"
+        );
+        assert!(
+            (b - 0.21148828).abs() < PRECISION,
+            "noise4 returned unexpected value - {b}"
+        );
+    }
+}
