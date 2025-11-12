@@ -21,7 +21,8 @@ if (OPENSIMPLEX_RUST)
     corrosion_import_crate(MANIFEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml ALL_FEATURES)
 
     target_link_libraries(${CURRENT_PROJECT} INTERFACE "opensimplex2")
-    target_include_directories(${CURRENT_PROJECT} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(${CURRENT_PROJECT} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/rust/")
+    target_sources(${CURRENT_PROJECT} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/rust/OpenSimplex2.h")
 
 endif()
 
@@ -33,7 +34,7 @@ if (OPENSIMPLEX_C)
     )
 
     add_library(${CURRENT_PROJECT}C ${SOURCE_CPP})
-    target_include_directories(${CURRENT_PROJECT}C PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/_old/")
+    target_include_directories(${CURRENT_PROJECT}C PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/_old/c/")
     target_compile_options(${CURRENT_PROJECT}C PRIVATE -Wall -Wextra --pedantic)
     target_link_libraries(${CURRENT_PROJECT} INTERFACE ${CURRENT_PROJECT}C)
 
