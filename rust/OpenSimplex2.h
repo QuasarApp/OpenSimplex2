@@ -1,5 +1,5 @@
 #ifndef OPENSIMPLEX2_H
-
+#define OPENSIMPLEX2_H
 
 #ifdef __cplusplus
 extern "C" {

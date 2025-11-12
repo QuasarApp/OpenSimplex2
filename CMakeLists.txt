@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.19)
 
 set(CURRENT_PROJECT "OpenSimplex2Interface")
 
-option(OPENSIMPLEX_C "Enable build old C implementation instead Rust" OFF)
-option(OPENSIMPLEX_RUST "Enable build old C implementation instead Rust" ON)
+option(OPENSIMPLEX_C "Enable/Disable build of the old C implementation" OFF)
+option(OPENSIMPLEX_RUST "Enable/Disable build of the main Rust implementation" ON)
 
 
 add_library(${CURRENT_PROJECT} INTERFACE)

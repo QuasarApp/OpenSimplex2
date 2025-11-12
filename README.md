@@ -70,8 +70,8 @@ You can enable both backends simultaneously if needed.
 To override the default options, use:
 
 ```cmake 
-option(OPENSIMPLEX_C "Enable build old C implementation instead Rust" ON)
-option(OPENSIMPLEX_RUST "Enable build old C implementation instead Rust" ON)
+option(OPENSIMPLEX_C "Enable/Disable build of the old C implementation" OFF)
+option(OPENSIMPLEX_RUST "Enable/Disable build of the main Rust implementation" ON)
 ```
 
 ### Including in C/C++ Projects
