@@ -26,29 +26,32 @@ Gradient vector tables were also revisited to improve probability symmetry in bo
  * 4D is implemented using the ordinary skew and a pre-generated 4x4x4x4 lookup table. I have a work-in-progress more-procedural implementation in my project backlog, which I will swap in if I find it to be competitive in performance.
  * 2D is based on Simplex, but uses a different process to find which points are in range.
  * Recommended choice for ridged noise (if passing individual layers into `abs(x)`).
-
-### Legacy OpenSimplex with updated gradients
- * In some code bases using original OpenSimplex, it may take fewer dev cycles to swap in the same noise that just has the new gradient tables. This brings moderate improvements without changing consistency characteristics or internal frequency.
- * Included in `_old/{language}/legacy`.
-
-### Older OpenSimplex2 implementations
- * OpenSimplex2 noise implementations from before performance and portability re-engineering.
- * Can also be found in the `_old` directory.
+ * Available in the GLSL and HLSL shader implementations.
 
 Note: area-generators have been moved to [their original repository](https://github.com/KdotJPG/Noise-VertexQueue-AreaGen).
 
-## C FFI usage
+## C usage
 
-### Monual usage
-Install a [Rust toolchain](https://www.rust-lang.org/tools/install) if needed.
+The C implementation is the main implementation of the noise generator.
+The source (`OpenSimplex2F.c`) and the public header (`OpenSimplex2F.h`)
+are located at the root of this repository.
 
-Build debug or release artifacts with:
+### Manual usage
+
+Compile the source file into your project with your C compiler, for example:
+
 ```
-cargo build
-# or
-cargo build --release --features std
+cc -Wall -Wextra --pedantic -O3 -c OpenSimplex2F.c -lm
 ```
-Library files will be in `./target/{debug,release}/`. Copy header from [`./rust/OpenSimplex2.h`](./rust/OpenSimplex2.h).
+
+Or use the bundled Makefile:
+
+```
+make
+```
+
+The Makefile also builds the `test_OpenSimplex2F` binary, which writes
+2D/3D/4D noise images (requires libpng).
 
 ### CMake
 
@@ -59,33 +62,22 @@ add_subdirectory(submodules/OpenSimplex2)
 target_link_libraries(${CURRENT_PROJECT} PUBLIC OpenSimplex2Interface)
 ```
 
-The OpenSimplex2 interface provides two implementation backends (C and Rust).
-By default, only the Rust backend is compiled.
-To control which backend should be used, configure the following options:
-
-* OPENSIMPLEX_C — OFF by default
-* OPENSIMPLEX_RUST — ON by default
-
-You can enable both backends simultaneously if needed.
-To override the default options, use:
-
-```cmake 
-option(OPENSIMPLEX_C "Enable/Disable build of the old C implementation" OFF)
-option(OPENSIMPLEX_RUST "Enable/Disable build of the main Rust implementation" ON)
-```
+The OpenSimplex2 interface target links the C implementation.
 
 ### Including in C/C++ Projects
 
-``` cpp
-#include <c/OpenSimplex2F.h> // if the OPENSIMPLEX_C option enabled
-#include <rust/OpenSimplex2.h> // if the OPENSIMPLEX_RUST option enabled
+```c
+#include <OpenSimplex2F.h>
 ```
 
 **Note:**
-The C and Rust implementations use different function names to call the noise generators.
+The C implementation provides the OpenSimplex2(F) noise in 2D, 3D and 4D.
+The GLSL and HLSL directories provide shader versions of OpenSimplex2(F)
+and OpenSimplex2S.
 
 ## Changelog
 
+* C implementation is now the main implementation, moved from `_old` to the root of the repository. All other implementations (Rust, C#, Java, C++) and the `_old` archive were removed. (Oct 10, 2026)
 * Rust implementation optimisations and CMake Inteface implementation (Nov 12, 2025)
 * Tuned up this `README.md`. (Mar 26, 2022)
 * Re-wrote functions to be instancelessly seedable and less dependent on lookup tables. Re-organized repository. Renamed `OpenSimplex2F` to just `OpenSimplex2` in file/class names. (Jan 16, 2022)
