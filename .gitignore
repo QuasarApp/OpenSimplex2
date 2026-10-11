@@ -1,2 +1,6 @@
-target
-Cargo.lock
+# C build artifacts
+*.o
+test_OpenSimplex2F
+test2d.png
+test3d.png
+test4d.png
