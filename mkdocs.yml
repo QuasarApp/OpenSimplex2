@@ -22,21 +22,20 @@ theme:
   palette:
     - scheme: default
       # Teal brand palette (intentionally different from the upstream
-      # documentation theme). These entries set the data-md-color-* page
-      # attributes (scheme switching / persistence), but Material ships
-      # no prebuilt rules for custom hex values, so the actual CSS
-      # variable overrides live in docs/overrides/main.css (attached via
-      # extra_css). Deep teal (#0e6b64) top bar, teal (#0d7d70) links.
-      primary: "#0e6b64"
-      accent: "#0d7d70"
+      # documentation theme), built only from Material's named colors so
+      # the site needs no custom CSS. Teal top bar, teal links.
+      primary: teal
+      accent: teal
       toggle:
         icon: material/brightness-4
         name: Switch to dark mode
     - scheme: slate
-      # Same teal top bar on the slate neutrals, light teal (#6fd0c2)
-      # links for contrast on the dark background.
-      primary: "#0e6b64"
-      accent: "#6fd0c2"
+      # Same teal top bar on the slate neutrals. The slate links are
+      # derived from the primary color by the theme, so the same teal
+      # accent keeps both schemes consistent (Material ships prebuilt
+      # accent rules for the base color names only).
+      primary: teal
+      accent: teal
       toggle:
         icon: material/brightness-7
         name: Switch to light mode
@@ -53,13 +52,6 @@ theme:
     - search.highlight
     - search.suggest
     - toc
-
-# Material for MkDocs only ships prebuilt palette rules for the named
-# Material colors, so the teal palette is applied through this extra
-# stylesheet (loaded after the theme CSS, see the file header in
-# docs/overrides/main.css for the color choices).
-extra_css:
-  - overrides/main.css
 
 markdown_extensions:
   - admonition
