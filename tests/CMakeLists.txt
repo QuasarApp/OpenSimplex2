@@ -1,6 +1,7 @@
 #
-# Copyright (C) 2025-2026 QuasarApp.
-# Distributed under the Unlicense, see the accompanying UNLICENSE file.
+# Copyright (C) 2026 QuasarApp Group DOO.
+# Distributed under the GNU Lesser General Public License v3.0 (LGPL-3.0),
+# see the accompanying LICENSE file.
 #
 
 get_filename_component(CURRENT_PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)
