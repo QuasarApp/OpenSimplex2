@@ -26,8 +26,7 @@ jobs:
       # The project is a plain C application (no Qt). On Windows the test source
       # uses __attribute__((unused)) (GCC-only, MSVC cannot build it), so a MinGW
       # toolchain is required: the aqt MinGW (tools_mingw1310) provides the gcc
-      # compiler and qmake, and its MSVCRT runtime DLLs are reused below to fix
-      # the bundled CQtDeployer runtime.
+      # compiler and qmake.
       - name: Install Qt (Windows)
         uses: jurplel/install-qt-action@v4.3.1
         if: runner.os == 'Windows'
@@ -60,35 +59,10 @@ jobs:
           key: ${{ matrix.os }}-${{ matrix.build_type }}
 
       # The `test` target deploys the test binary with cqtdeployer, so install it.
+      # No version pin: the install action downloads the latest stable
+      # CQtDeployer release by default (latest: true).
       - name: Install CQtDeployer
         uses: QuasarApp/cqtdeployer-install-action@v1.1.0
-        with:
-          version: v1.6.2445.b0ec904
-
-      # The released Windows CQtDeployer binary (CQtDeployer.exe + Qt6Core.dll) is built with
-      # the MSVCRT-based MinGW (aqt win64_mingw / tools_mingw1310, GCC 13.1.0), but the
-      # bundled libstdc++-6.dll / libgcc_s_seh-1.dll / libwinpthread-1.dll in the release
-      # zip are from a UCRT-based MinGW (GCC 13.2.0, "x86_64-ucrt-posix-seh"). Loading the
-      # UCRT C++ runtime from the MSVCRT exe fails with STATUS_ENTRYPOINT_NOT_FOUND
-      # (0xc0000139) before the deploy step can run. Overwrite the three runtime DLLs with
-      # the matching MSVCRT versions shipped by aqt tools_mingw1310 so the bundle is
-      # self-consistent. aqt installs that toolchain under %IQTA_TOOLS%\mingw1310_64.
-      - name: Fix CQtDeployer MinGW runtime (Windows)
-        if: runner.os == 'Windows'
-        shell: cmd
-        run: |
-          echo "Aligning CQtDeployer bundled MinGW runtime with aqt tools_mingw1310 (MSVCRT)"
-          set "MINGW_BIN=%IQTA_TOOLS%\mingw1310_64\bin"
-          if not exist "%MINGW_BIN%\libstdc++-6.dll" (
-            echo "ERROR: aqt MSVCRT MinGW runtime not found at %MINGW_BIN%"
-            echo "--- contents of %IQTA_TOOLS% ---"
-            dir "%IQTA_TOOLS%" 2>nul
-            exit /b 1
-          )
-          copy /Y "%MINGW_BIN%\libstdc++-6.dll" "%GITHUB_WORKSPACE%\cqt\libstdc++-6.dll"
-          copy /Y "%MINGW_BIN%\libgcc_s_seh-1.dll" "%GITHUB_WORKSPACE%\cqt\libgcc_s_seh-1.dll"
-          copy /Y "%MINGW_BIN%\libwinpthread-1.dll" "%GITHUB_WORKSPACE%\cqt\libwinpthread-1.dll"
-          echo "Done."
 
       # The test executable links against libpng (find_package(PNG REQUIRED)) and writes
       # test2d/3d/4d.png at runtime.
