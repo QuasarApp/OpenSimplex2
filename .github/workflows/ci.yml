@@ -8,6 +8,8 @@ name: Build and Test
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  # Allows maintainers to trigger a manual run (e.g. to test the pipeline).
+  workflow_dispatch:
 
 jobs:
   build-and-test:
