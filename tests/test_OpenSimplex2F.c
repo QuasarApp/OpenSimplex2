@@ -74,9 +74,14 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 	double value;
 	double v0, v1, v2; /* values from different octaves. */
 	uint32_t rgb;
-	uint32_t image2d[HEIGHT][WIDTH];
-	uint32_t image3d[HEIGHT][WIDTH];
-	uint32_t image4d[HEIGHT][WIDTH];
+	/* Static storage: 3 x 1MB arrays would not fit the default Windows
+	 * thread stack (1MB) and crash with STATUS_STACK_BUFFER_OVERRUN
+	 * (0xC000013D); Linux survives them only because its default stack
+	 * is 8MB.
+	 */
+	static uint32_t image2d[HEIGHT][WIDTH];
+	static uint32_t image3d[HEIGHT][WIDTH];
+	static uint32_t image4d[HEIGHT][WIDTH];
 	struct OpenSimplex2F_context *ctx;
 
 	OpenSimplex2F(77374, &ctx);
