@@ -1,0 +1,9 @@
+<map id="OpenSimplex2F_context" name="OpenSimplex2F_context">
+<area shape="rect" id="Node000001" title=" " alt="" coords="57,101,239,127"/>
+<area shape="rect" id="Node000002" href="$structGrad2.html" title=" " alt="" coords="5,5,67,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="45,43,52,60,63,75,82,89,103,99,101,104,79,94,59,79,47,63,40,45"/>
+<area shape="rect" id="Node000003" href="$structGrad3.html" title=" " alt="" coords="117,5,179,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,45,151,101,145,101,145,45"/>
+<area shape="rect" id="Node000004" href="$structGrad4.html" title=" " alt="" coords="229,5,291,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="254,45,246,63,233,79,213,94,191,104,189,99,210,89,229,75,241,60,250,43"/>
+</map>
