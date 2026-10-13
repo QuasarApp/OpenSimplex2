@@ -1,6 +1,7 @@
 #
 # Copyright (C) 2025-2026 QuasarApp.
-# Distributed under the Unlicense, see the accompanying UNLICENSE file.
+# Distributed under the GNU Lesser General Public License v3.0 (LGPL-3.0),
+# see the accompanying LICENSE file.
 #
 
 cmake_minimum_required(VERSION 3.19)
