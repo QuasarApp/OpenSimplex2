@@ -1,0 +1,92 @@
+name: Close Community Release Milestone
+
+# One-shot maintenance workflow for issue #13 "Comunity Release":
+# it closes all open issues of milestone #1 ("Comunity Release") and then
+# closes the milestone itself.
+#
+# Why this workflow exists:
+#   The QuasarAppCI bot account only has READ (pull) access on this repository
+#   (no triage / maintain / push), so it cannot close issues or manage labels
+#   directly. This workflow runs with the repository GITHUB_TOKEN
+#   (issues: write, milestones: write) and is triggered manually by a
+#   maintainer, who can grant that access.
+#
+# Usage (after this file is merged to main):
+#   Actions -> "Close Community Release Milestone" -> Run workflow
+# The file can be deleted from the repository after the first successful run.
+on:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  milestones: write
+
+jobs:
+  close-milestone:
+    name: Close milestone #1 and its issues
+    runs-on: ubuntu-latest
+    env:
+      REPO: QuasarApp/OpenSimplex2
+      MILESTONE: "1"
+      GH_API: https://api.github.com
+
+    steps:
+      - name: Show effective GITHUB_TOKEN permissions (diagnostic)
+        run: |
+          curl -s \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            -H "Accept: application/vnd.github+json" \
+            "$GH_API/repos/$REPO" | jq '{permissions}'
+
+      - name: Close all open issues of milestone #1
+        run: |
+          OPEN_ISSUES=$(curl -s \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            -H "Accept: application/vnd.github+json" \
+            "$GH_API/repos/$REPO/issues?milestone=$MILESTONE&state=open&per_page=100" \
+            | jq -c '[.[] | select(.pull_request == null) | .number]')
+          echo "Open issues in milestone #$MILESTONE: $OPEN_ISSUES"
+          for n in $(echo "$OPEN_ISSUES" | jq -r '.[]'); do
+            HTTP=$(curl -s -o /tmp/close_resp.json -w '%{http_code}' -X PATCH \
+              -H "Authorization: Bearer ${{ github.token }}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "Content-Type: application/json" \
+              -d '{"state":"closed"}' \
+              "$GH_API/repos/$REPO/issues/$n")
+            echo "issue #$n -> HTTP $HTTP"
+            if [ "$HTTP" != "200" ]; then
+              echo "Failed to close issue #$n:"
+              cat /tmp/close_resp.json
+              exit 1
+            fi
+          done
+
+      - name: Close milestone #1
+        run: |
+          HTTP=$(curl -s -o /tmp/close_milestone_resp.json -w '%{http_code}' -X PATCH \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            -d '{"state":"closed"}' \
+            "$GH_API/repos/$REPO/milestones/$MILESTONE")
+          echo "milestone #$MILESTONE -> HTTP $HTTP"
+          if [ "$HTTP" != "200" ]; then
+            echo "Failed to close milestone #$MILESTONE:"
+            cat /tmp/close_milestone_resp.json
+            exit 1
+          fi
+
+      - name: Verify final state
+        run: |
+          echo '--- issues of milestone #1 (any state) ---'
+          curl -s \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            -H "Accept: application/vnd.github+json" \
+            "$GH_API/repos/$REPO/issues?milestone=$MILESTONE&state=all&per_page=100" \
+            | jq -r '.[] | select(.pull_request == null) | "#\(.number) [\(.state)] \(.title)"'
+          echo '--- milestone #1 ---'
+          curl -s \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            -H "Accept: application/vnd.github+json" \
+            "$GH_API/repos/$REPO/milestones/$MILESTONE" \
+            | jq '{title, state, open_issues, closed_issues}'
