@@ -1,0 +1,114 @@
+name: Build and Test
+
+# Builds the OpenSimplex2 CMake project and runs its internal `test` target.
+# The `test` target (created by the QuasarApp CMake module, initTests/addTests)
+# first deploys the test executable with `cqtdeployer` (deployTest* target) and
+# then executes the generated runner, so cqtdeployer must be installed on PATH
+# before the test step (see the CQtDeployer install action below).
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  # Allows maintainers to trigger a manual run (e.g. to test the pipeline).
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }} (${{ matrix.build_type }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build_type: [Release]
+
+    steps:
+      # The project is a plain C application (no Qt). On Windows the test source
+      # uses __attribute__((unused)) (GCC-only, MSVC cannot build it), so a MinGW
+      # toolchain is required: the aqt MinGW (tools_mingw1310) provides the gcc
+      # compiler and qmake.
+      - name: Install Qt (Windows)
+        uses: jurplel/install-qt-action@v4.3.1
+        if: runner.os == 'Windows'
+        with:
+          version: '6.10.3' # aqt has bug with latest qt versions in windows
+          target: 'desktop'
+          arch: 'win64_mingw'
+          cache: true
+          tools: 'tools_mingw1310'
+          aqtversion: ==3.3.*
+
+      - name: Install Qt (Linux)
+        uses: jurplel/install-qt-action@v4.3.1
+        if: runner.os == 'Linux'
+        with:
+          version: '6.12.0'
+          target: 'desktop'
+          arch: 'linux_gcc_64'
+          cache: true
+          aqtversion: ==3.3.*
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.os }}-${{ matrix.build_type }}
+
+      # The `test` target deploys the test binary with cqtdeployer, so install it.
+      # No version pin: the install action downloads the latest stable
+      # CQtDeployer release by default (latest: true).
+      - name: Install CQtDeployer
+        uses: QuasarApp/cqtdeployer-install-action@v1.1.0
+
+      # The test executable links against libpng (find_package(PNG REQUIRED)) and writes
+      # test2d/3d/4d.png at runtime.
+      - name: Install libpng (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpng-dev
+
+      # The aqt MinGW does not ship libpng, so install the MinGW libpng from MSYS2 and
+      # point CMake at it (see the Windows configure step).
+      - name: Install libpng (Windows)
+        id: msys2
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-libpng
+
+      - name: Configure CMake (Windows)
+        if: runner.os == 'Windows'
+        run: >
+          cmake -B ${{ github.workspace }}/build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DCMAKE_C_COMPILER=gcc
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache
+          -DCMAKE_PREFIX_PATH=${{ steps.msys2.outputs.msys2-location }}/mingw64
+          -S ${{ github.workspace }}
+
+      - name: Configure CMake (Linux)
+        if: runner.os == 'Linux'
+        run: >
+          cmake -B ${{ github.workspace }}/build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache
+          -DCMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}
+          -S ${{ github.workspace }}
+
+      - name: Build
+        run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --parallel 4
+
+      - name: ccache statistics
+        run: ccache -s
+
+      # Runs the internal CMake `test` target (deploys + executes the test binary).
+      - name: Run Tests
+        run: cmake --build ${{ github.workspace }}/build --target test
