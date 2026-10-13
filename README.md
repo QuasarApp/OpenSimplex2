@@ -50,7 +50,8 @@ Or use the bundled Makefile:
 make
 ```
 
-The Makefile also builds the `test_OpenSimplex2F` binary, which writes
+The Makefile also builds the `test_OpenSimplex2F` binary (test source in
+`tests/test_OpenSimplex2F.c`), which writes
 2D/3D/4D noise images (requires libpng).
 
 ### CMake
@@ -63,6 +64,17 @@ target_link_libraries(${CURRENT_PROJECT} PUBLIC OpenSimplex2Interface)
 ```
 
 The OpenSimplex2 interface target links the C implementation.
+
+To build the tests, keep the `OPENSIMPLEX2_TESTS` option enabled (default
+`ON`) and run the `test` target — it builds the `OpenSimplex2tests`
+executable from the `tests/` subdirectory and runs it (the targets are
+registered with the `addTests()` function of the QuasarApp CMake module):
+
+```
+cmake -B build
+cmake --build build
+cmake --build build --target test
+```
 
 ### Including in C/C++ Projects
 
