@@ -82,6 +82,15 @@ jobs:
           msystem: MINGW64
           install: mingw-w64-x86_64-libpng
 
+      # setup-msys2 only adds the MSYS2 root to the Windows PATH, so the test
+      # executable would not find libpng16-16.dll (and libz-1.dll) at runtime and
+      # fails with 0xc0000135 (STATUS_DLL_NOT_FOUND). Add the mingw64 bin
+      # directory to the PATH for the build/test steps.
+      - name: Add MSYS2 mingw64 bin to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          Add-Content "$env:GITHUB_PATH" "${{ steps.msys2.outputs.msys2-location }}/mingw64/bin"
+
       - name: Configure CMake (Windows)
         if: runner.os == 'Windows'
         run: >
