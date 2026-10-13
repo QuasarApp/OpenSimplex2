@@ -1,11 +1,31 @@
 OpenSimplex2
 The most fast implementation of the OpenSimplex noise (2D, 3D and 4D) in C.
 
-Copyright (C) 2026 QuasarApp Group DOO
+============================================================================
+Previous license and previous owners (from 2019 to 2020)
+============================================================================
 
-This project is licensed under the GNU Lesser General Public License as
-published by the Free Software Foundation, either version 3 of the License,
-or (at your option) any later version.
+The original OpenSimplex2 sources in this repository (OpenSimplex2F.c,
+OpenSimplex2F.h, Makefile, glsl/*, hlsl/*) come from the upstream project
+by KdotJPG:
+
+    Copyright (C) 2019-2020 KdotJPG
+    (https://github.com/KdotJPG/New-Simplex-Style-Gradient-Noise)
+
+They were previously released under the CC0 1.0 Universal public domain
+dedication (<https://creativecommons.org/publicdomain/zero/1.0/>). That
+dedication remains in effect for those files; the hlsl/ directory keeps a
+copy of the CC0 text as UNLICENSE.
+
+============================================================================
+Our license (from 2026 to the present)
+============================================================================
+
+All new code added by the QuasarApp fork is licensed under the GNU Lesser
+General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version:
+
+    Copyright (C) 2026 QuasarApp Group DOO
 
 You should have received a copy of the GNU Lesser General Public License
 along with this project. If not, see <https://www.gnu.org/licenses/>.

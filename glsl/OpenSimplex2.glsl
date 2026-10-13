@@ -1,3 +1,10 @@
+// Copyright (C) 2019-2020 KdotJPG (original work, previous license:
+// CC0 1.0 Universal, public domain dedication).
+//
+// Copyright (C) 2026 QuasarApp Group DOO
+// Licensed under the GNU Lesser General Public License v3.0 (LGPL-3.0),
+// see the accompanying LICENSE file.
+
 //////////////// K.jpg's Re-oriented 4-Point BCC Noise (OpenSimplex2) ////////////////
 ////////////////////// Output: vec4(dF/dx, dF/dy, dF/dz, value) //////////////////////
 

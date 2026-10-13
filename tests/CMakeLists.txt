@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2025-2026 QuasarApp.
+# Copyright (C) 2026 QuasarApp Group DOO.
 # Distributed under the GNU Lesser General Public License v3.0 (LGPL-3.0),
 # see the accompanying LICENSE file.
 #

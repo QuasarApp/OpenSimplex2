@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2026 QuasarApp Group DOO
+ * Licensed under the GNU Lesser General Public License v3.0 (LGPL-3.0),
+ * see the accompanying LICENSE file.
+ */
+
 #include <stdio.h>
 #if ((__STDC_VERSION__ >= 199901L) || (_MSC_VER))
 	#include <stdint.h>
