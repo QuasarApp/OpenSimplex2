@@ -25,6 +25,8 @@ set(SOURCE_C
 add_library(${CURRENT_PROJECT}C ${SOURCE_C})
 target_include_directories(${CURRENT_PROJECT}C PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_options(${CURRENT_PROJECT}C PRIVATE -Wall -Wextra --pedantic)
+# Link the C math library (libm, the "-lm" of the Makefile): the
+# OpenSimplex2F.c implementation calls fabs() in its 4D scoring.
 target_link_libraries(${CURRENT_PROJECT}C PRIVATE m)
 target_link_libraries(${CURRENT_PROJECT} INTERFACE ${CURRENT_PROJECT}C)
 
