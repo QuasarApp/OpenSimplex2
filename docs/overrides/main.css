@@ -1,0 +1,43 @@
+/*
+ * main.css
+ *
+ * Custom stylesheet for the MkDocs Material site, attached through the
+ * top-level extra_css option (see mkdocs.yml) and therefore loaded after
+ * the theme's main.css and palette.css, so every rule in this file wins
+ * the cascade.
+ *
+ * Material for MkDocs only ships prebuilt palette rules for the named
+ * Material colors, so the teal brand palette (intentionally different
+ * from the upstream documentation theme) is applied here by overriding
+ * the theme's CSS custom properties per color scheme:
+ *
+ *   primary        #0e6b64 (deep teal: top bar, active nav, tabs)
+ *   primary dark   #0a4f4a (pressed / dark variant of the primary bar)
+ *   primary light  #17857c (hover / light variant of the primary bar)
+ *   accent         #0d7d70 (light-scheme links, ~5.0:1 contrast on white)
+ *   accent light   #6fd0c2 (dark-scheme links, contrast on the slate bg)
+ */
+
+/* primary: deep teal (both schemes) */
+[data-md-color-scheme="default"],
+[data-md-color-scheme="slate"] {
+    --md-primary-fg-color: #0e6b64;
+    --md-primary-fg-color--light: #17857c;
+    --md-primary-fg-color--dark: #0a4f4a;
+}
+
+/* accent: teal on the light scheme (also colors the in-text links, since
+   Material 9 derives --md-typeset-a-color from the primary color by
+   default) */
+[data-md-color-scheme="default"] {
+    --md-accent-fg-color: #0d7d70;
+    --md-accent-fg-color--transparent: #0d7d701a;
+    --md-typeset-a-color: #0d7d70;
+}
+
+/* accent: light teal on the dark (slate) scheme */
+[data-md-color-scheme="slate"] {
+    --md-accent-fg-color: #6fd0c2;
+    --md-accent-fg-color--transparent: #6fd0c21a;
+    --md-typeset-a-color: #6fd0c2;
+}

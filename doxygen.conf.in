@@ -1,0 +1,104 @@
+#
+# doxygen.conf.in
+#
+# Doxygen configuration template for the OpenSimplex2 documentation site.
+#
+# The "Deploy Documentation (GitHub Pages)" workflow substitutes the
+# @OPENSIMPLEX2_VERSION@ placeholder with "1.0.<commit-count>.<short-sha>"
+# and runs `doxygen doxygen.conf` from the repository root
+# (see .github/workflows/deploy-docs.yml). The HTML output is written to
+# docs/api/ (OUTPUT_DIRECTORY + HTML_OUTPUT) and served as the /api/
+# section of the MkDocs site (see mkdocs.yml).
+#
+# res/doxygen-material.css is copied into the output directory by Doxygen
+# (HTML_EXTRA_STYLESHEET) and restyles the generated pages with the site's
+# teal palette.
+
+# ------------------------------------------------------------------------
+# Project related configuration options
+# ------------------------------------------------------------------------
+
+DOXYFILE_ENCODING      = UTF-8
+
+PROJECT_NAME           = OpenSimplex2
+
+# Substituted at build time, see the file header.
+PROJECT_NUMBER         = @OPENSIMPLEX2_VERSION@
+
+PROJECT_BRIEF          = "The most fast implementation of the OpenSimplex noise (2D, 3D and 4D) in C"
+
+OUTPUT_DIRECTORY       = docs
+
+CREATE_SUBDIRS         = NO
+
+USE_MDFILES            = NO
+
+INPUT                  = OpenSimplex2F.h \
+                         OpenSimplex2F.c
+
+FILE_PATTERNS          = *.h \
+                         *.c
+
+RECURSIVE              = NO
+
+OUTPUT_LANGUAGE        = English
+
+# ------------------------------------------------------------------------
+# Build related configuration options
+# ------------------------------------------------------------------------
+
+EXTRACT_ALL            = YES
+
+EXTRACT_STATIC         = NO
+
+EXTRACT_PACKAGE        = NO
+
+OPTIMIZE_OUTPUT_FOR_C  = YES
+
+TYPEDEF_HIDES_STRUCT   = YES
+
+BRIEF_MEMBER_DESC      = YES
+
+QTLIKE_AUTOBRIEF       = YES
+
+JAVADOC_AUTOBRIEF      = YES
+
+QUIET                  = NO
+
+WARN_IF_UNDOCUMENTED   = YES
+
+WARN_AS_ERROR          = NO
+
+# ------------------------------------------------------------------------
+# Output related configuration options
+# ------------------------------------------------------------------------
+
+GENERATE_HTML          = YES
+
+# The generated pages are written to docs/api/ so that the MkDocs build
+# serves them as the /api/ section of the site.
+HTML_OUTPUT            = api
+
+GENERATE_TREEVIEW      = YES
+
+GENERATE_HTMLHELP      = NO
+
+GENERATE_LATEX         = NO
+
+GENERATE_XML           = NO
+
+# Copied into the output directory and loaded after the generated
+# doxygen.css, so it wins the cascade (see the file itself for details).
+HTML_EXTRA_STYLESHEET  = res/doxygen-material.css
+
+# ------------------------------------------------------------------------
+# Dot related configuration options
+# ------------------------------------------------------------------------
+
+HAVE_DOT               = YES
+
+CALL_GRAPH             = YES
+
+CALLER_GRAPH           = YES
+
+MAX_DOT_GRAPH_DEPTH    = 0
