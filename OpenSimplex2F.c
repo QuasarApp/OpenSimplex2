@@ -31,6 +31,7 @@
 static const double N2 = 0.01001634121365712;
 static const double N3 = 0.030485933181293584;
 static const double N4 = 0.009202377986303158;
+static const double N5 = 0.006245939255470977;
 
 #define B0000 0x00
 #define B0001 0x01
@@ -48,6 +49,7 @@ static const double N4 = 0.009202377986303158;
 #define B1101 0x0d
 #define B1110 0x0e
 #define B1111 0x0f
+
 
 struct Grad2 {
 	double dx, dy;
@@ -146,11 +148,40 @@ static struct LatticePoint4D *new_LatticePoint4D(int xsv, int ysv, int zsv, int 
 	return this;
 }
 
+struct LatticePoint5D {
+	int xsv, ysv, zsv, wsv, vsv;
+	double dx, dy, dz, dw, dv;
+	double xsi, ysi, zsi, wsi, vsi;
+	double ssiDelta;
+};
+
+static struct LatticePoint5D *new_LatticePoint5D(int xsv, int ysv, int zsv, int wsv, int vsv)
+{
+	struct LatticePoint5D *this = calloc(1, sizeof(*this));
+
+	this->xsv = xsv + 409; this->ysv = ysv + 409; this->zsv = zsv + 409; this->wsv = wsv + 409; this->vsv = vsv + 409;
+	double ssv = (xsv + ysv + zsv + wsv + vsv) * 0.2472135954999579;
+	this->dx = -xsv - ssv;
+	this->dy = -ysv - ssv;
+	this->dz = -zsv - ssv;
+	this->dw = -wsv - ssv;
+	this->dv = -vsv - ssv;
+	this->xsi = 0.2 - xsv;
+	this->ysi = 0.2 - ysv;
+	this->zsi = 0.2 - zsv;
+	this->wsi = 0.2 - wsv;
+	this->vsi = 0.2 - vsv;
+	this->ssiDelta = (0.6 - xsv - ysv - zsv - wsv - vsv) * 0.2472135954999579;
+	return this;
+}
+
 struct OpenSimplex2F_context {
 	int16_t *perm;
 	struct Grad2 *permGrad2;
 	struct Grad3 *permGrad3;
 	struct Grad4 *permGrad4;
+	struct Grad5 *permGrad5;
+	struct Grad1D *permGrad1D;
 };
 
 #define ARRAYSIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -158,9 +189,11 @@ struct OpenSimplex2F_context {
 static struct Grad2 GRADIENTS_2D[PSIZE];
 static struct Grad3 GRADIENTS_3D[PSIZE];
 static struct Grad4 GRADIENTS_4D[PSIZE];
+static struct Grad5 GRADIENTS_5D[PSIZE];
 static struct LatticePoint2D *LOOKUP_2D[4];
 static struct LatticePoint3D *LOOKUP_3D[8];
 static struct LatticePoint4D *VERTICES_4D[16];
+static struct LatticePoint5D *LOOKUP_5D[32];
 
 static struct Grad2 grad2[] = {
 	{ 0.130526192220052,  0.99144486137381},

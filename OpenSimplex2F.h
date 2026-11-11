@@ -43,6 +43,59 @@
 
 struct OpenSimplex2F_context;
 
+/* Gradient structures */
+struct Grad2 {
+	double dx, dy;
+};
+
+struct Grad3 {
+	double dx, dy, dz;
+};
+
+struct Grad4 {
+	double dx, dy, dz, dw;
+};
+
+struct Grad5 {
+	double dx, dy, dz, dw, dxw;
+};
+
+/* Lattice point structures */
+struct LatticePoint2D {
+	int xsv, ysv;
+	double dx, dy;
+};
+
+struct LatticePoint3D {
+	double dxr, dyr, dzr;
+	int xrv, yrv, zrv;
+	struct LatticePoint3D *nextOnFailure, *nextOnSuccess;
+};
+
+struct LatticePoint4D {
+	int xsv, ysv, zsv, wsv;
+	double dx, dy, dz, dw;
+	double xsi, ysi, zsi, wsi;
+	double ssiDelta;
+};
+
+struct LatticePoint5D {
+	int xsv, ysv, zsv, wsv, vsv;
+	double dx, dy, dz, dw, dv;
+	double xsi, ysi, zsi, wsi, vsi;
+	double ssiDelta;
+};
+
+/* Context structure */
+struct OpenSimplex2F_context {
+	int16_t *perm;
+	struct Grad2 *permGrad2;
+	struct Grad3 *permGrad3;
+	struct Grad4 *permGrad4;
+	struct Grad5 *permGrad5;
+	struct Grad1D *permGrad1D;
+};
+
 /* Allocate and initialize OpenSimplex2F context */
 int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx);
 
