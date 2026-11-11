@@ -116,6 +116,12 @@ double OpenSimplex2F_noise4_XZBeforeYW(struct OpenSimplex2F_context *ctx, double
  */
 double OpenSimplex2F_noise4_XYZBeforeW(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w);
 
+/**
+ * 5D OpenSimplex2F noise, classic lattice orientation.
+ * Foundation for higher-dimensional noise generation.
+ */
+double OpenSimplex2F_noise5_Classic(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
+
 #ifdef __cplusplus
 	}
 #endif

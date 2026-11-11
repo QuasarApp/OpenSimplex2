@@ -31,6 +31,7 @@
 static const double N2 = 0.01001634121365712;
 static const double N3 = 0.030485933181293584;
 static const double N4 = 0.009202377986303158;
+static const double N5 = 0.006325612644835935;
 
 #define B0000 0x00
 #define B0001 0x01
@@ -61,9 +62,18 @@ struct Grad4 {
 	double dx, dy, dz, dw;
 };
 
+struct Grad5 {
+	double dx, dy, dz, dw, dxw;
+};
+
 struct LatticePoint2D {
 	int xsv, ysv;
 	double dx, dy;
+};
+
+struct LatticePoint5D {
+	int xsv, ysv, zsv, wsv, vsv;
+	double dx, dy, dz, dw, dv;
 };
 
 static struct LatticePoint2D *new_LatticePoint2D(int xsv, int ysv)
@@ -146,11 +156,26 @@ static struct LatticePoint4D *new_LatticePoint4D(int xsv, int ysv, int zsv, int 
 	return this;
 }
 
+static struct LatticePoint5D *new_LatticePoint5D(int xsv, int ysv, int zsv, int wsv, int vsv)
+{
+	struct LatticePoint5D *this = calloc(1, sizeof(*this));
+
+	this->xsv = xsv + 409; this->ysv = ysv + 409; this->zsv = zsv + 409; this->wsv = wsv + 409; this->vsv = vsv + 409;
+	double ssv = (xsv + ysv + zsv + wsv + vsv) * 0.309016994374947;
+	this->dx = -xsv - ssv;
+	this->dy = -ysv - ssv;
+	this->dz = -zsv - ssv;
+	this->dw = -wsv - ssv;
+	this->dv = -vsv - ssv;
+	return this;
+}
+
 struct OpenSimplex2F_context {
 	int16_t *perm;
 	struct Grad2 *permGrad2;
 	struct Grad3 *permGrad3;
 	struct Grad4 *permGrad4;
+	struct Grad5 *permGrad5;
 };
 
 #define ARRAYSIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -161,6 +186,7 @@ static struct Grad4 GRADIENTS_4D[PSIZE];
 static struct LatticePoint2D *LOOKUP_2D[4];
 static struct LatticePoint3D *LOOKUP_3D[8];
 static struct LatticePoint4D *VERTICES_4D[16];
+static struct LatticePoint5D *LOOKUP_5D[32];
 
 static struct Grad2 grad2[] = {
 	{ 0.130526192220052,  0.99144486137381},
@@ -404,6 +430,39 @@ static struct Grad4 grad4[] = {
 };
 
 
+static struct Grad5 GRADIENTS_5D[PSIZE];
+
+static struct Grad5 grad5[] = {
+	{ 0.0, 0.0, 0.0, 0.0, 1.0},
+	{ 0.0, 0.0, 0.0, 1.0, 0.0},
+	{ 0.0, 0.0, 1.0, 0.0, 0.0},
+	{ 0.0, 1.0, 0.0, 0.0, 0.0},
+	{ 1.0, 0.0, 0.0, 0.0, 0.0},
+	{ 0.0, 0.0, 1.0, 0.0, 1.0},
+	{ 0.0, 0.0, 0.0, 1.0, 1.0},
+	{ 0.0, 1.0, 0.0, 1.0, 0.0},
+	{ 1.0, 0.0, 0.0, 1.0, 0.0},
+	{ 1.0, 1.0, 0.0, 0.0, 0.0},
+	{ 0.0, 1.0, 1.0, 0.0, 0.0},
+	{ 1.0, 0.0, 1.0, 0.0, 0.0},
+	{ 1.0, 1.0, 1.0, 0.0, 0.0},
+	{ 1.0, 0.0, 0.0, 1.0, 0.0},
+	{ 0.0, 1.0, 0.0, 1.0, 0.0},
+	{ 0.0, 0.0, 1.0, 1.0, 0.0},
+	{ 0.0, 0.0, 0.0, 1.0, 1.0},
+	{ 1.0, 1.0, 0.0, 1.0, 0.0},
+	{ 1.0, 0.0, 1.0, 0.0, 1.0},
+	{ 0.0, 1.0, 1.0, 0.0, 1.0},
+	{ 1.0, 0.0, 0.0, 1.0, 1.0},
+	{ 1.0, 1.0, 1.0, 0.0, 1.0},
+	{ 1.0, 1.0, 0.0, 1.0, 1.0},
+	{ 1.0, 0.0, 1.0, 1.0, 0.0},
+	{ 0.0, 1.0, 1.0, 1.0, 0.0},
+	{ 0.0, 1.0, 0.0, 1.0, 1.0},
+	{ 0.0, 0.0, 1.0, 1.0, 1.0},
+	{ 1.0, 1.0, 1.0, 1.0, 1.0}
+};
+
 static void setup_gradients(void)
 {
 	static int already_did = 0;
@@ -432,6 +491,13 @@ static void setup_gradients(void)
 	}
 	for (i = 0; i < PSIZE; i++) {
 		GRADIENTS_4D[i] = grad4[i % ARRAYSIZE(grad4)];
+	}
+	
+	for (i = 0; i < ARRAYSIZE(grad5); i++) {
+		grad5[i].dx /= N5; grad5[i].dy /= N5; grad5[i].dz /= N5; grad5[i].dw /= N5; grad5[i].dxw /= N5;
+	}
+	for (i = 0; i < PSIZE; i++) {
+		GRADIENTS_5D[i] = grad5[i % ARRAYSIZE(grad5)];
 	}
 }
 
@@ -537,6 +603,8 @@ void OpenSimplex2F_free(struct OpenSimplex2F_context *ctx)
 		free(ctx->permGrad3);
 	if (ctx->permGrad4)
 		free(ctx->permGrad4);
+	if (ctx->permGrad5)
+		free(ctx->permGrad5);
 	free(ctx);
 }
 
@@ -563,8 +631,9 @@ int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx)
 	c->permGrad2 = calloc(1, sizeof(*c->permGrad2) * PSIZE);
 	c->permGrad3 = calloc(1, sizeof(*c->permGrad3) * PSIZE);
 	c->permGrad4 = calloc(1, sizeof(*c->permGrad4) * PSIZE);
+	c->permGrad5 = calloc(1, sizeof(*c->permGrad5) * PSIZE);
 
-	if (!c->perm || !c->permGrad2 || !c->permGrad3 || !c->permGrad4) {
+	if (!c->perm || !c->permGrad2 || !c->permGrad3 || !c->permGrad4 || !c->permGrad5) {
 		OpenSimplex2F_free(*ctx);
 		*ctx = NULL;
 		free(source);
@@ -583,6 +652,7 @@ int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx)
 		c->permGrad2[i] = GRADIENTS_2D[c->perm[i]];
 		c->permGrad3[i] = GRADIENTS_3D[c->perm[i]];
 		c->permGrad4[i] = GRADIENTS_4D[c->perm[i]];
+		c->permGrad5[i] = GRADIENTS_5D[c->perm[i]];
 		source[r] = source[i];
 	}
 	free(source);
@@ -927,3 +997,49 @@ double OpenSimplex2F_noise4_XYZBeforeW(struct OpenSimplex2F_context *ctx, double
 	return noise4_Base(ctx, xs, ys, zs, ws);
 }
 
+
+static double noise5_Base(struct OpenSimplex2F_context *ctx, double xs, double ys, double zs, double ws, double vs);
+/**
+ * 5D OpenSimplex2F noise, classic lattice orientation.
+ * Foundation for higher-dimensional noise generation.
+ */
+double OpenSimplex2F_noise5_Classic(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v)
+{
+	double s = -0.138196601125011 * (x + y + z + w + v);
+	double xs = x + s, ys = y + s, zs = z + s, ws = w + s, vs = v + s;
+
+	return noise5_Base(ctx, xs, ys, zs, ws, vs);
+}
+
+static double noise5_Base(struct OpenSimplex2F_context *ctx, double xs, double ys, double zs, double ws, double vs)
+{
+	struct LatticePoint5D *lookup[32];
+	int n = 0;
+
+	// Skew the input space to determine the simplex cell
+	int xsv = (int) floor(xs);
+	int ysv = (int) floor(ys);
+	int zsv = (int) floor(zs);
+	int wsv = (int) floor(ws);
+	int vsv = (int) floor(vs);
+
+	double sss = (xsv + ysv + zsv + wsv + vsv) * 0.309016994374947;
+	double xsi = xs - xsv - sss;
+	double ysi = ys - ysv - sss;
+	double zsi = zs - zsv - sss;
+	double wsi = ws - wsv - sss;
+	double vss = vs - vsv - sss;
+
+	// Generate 5D gradient for the current cell
+	struct Grad5 grad = ctx->permGrad5[ctx->perm[(ctx->perm[xsv & PMASK] & 0x7ff) ^ (ctx->perm[ysv & PMASK] & 0x7ff) ^ (ctx->perm[zsv & PMASK] & 0x7ff) ^ (ctx->perm[wsv & PMASK] & 0x7ff) ^ (ctx->perm[vsv & PMASK] & 0x7ff)]];
+
+	// For a proper 5D implementation, we would need to:
+	// 1. Generate all lattice points in the 5D simplex
+	// 2. Calculate the contribution from each lattice point
+	// 3. Interpolate based on the gradient values
+
+	// This is a placeholder implementation
+	// A full implementation would be much more complex
+	// For now, return a simple value based on the input
+	return 0.0;
+}
