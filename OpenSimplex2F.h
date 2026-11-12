@@ -53,6 +53,13 @@ void OpenSimplex2F_free(struct OpenSimplex2F_context * ctx);
 void OpenSimplex2F_shutdown(void);
 
 /**
+ * 1D Simplex noise - super fast implementation.
+ * This is a highly optimized version that removes unnecessary branches
+ * and combines the two point calculations for maximum speed.
+ */
+double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x);
+
+/**
  * 2D Simplex noise, standard lattice orientation.
  */
 double OpenSimplex2F_noise2(struct OpenSimplex2F_context *ctx, double x, double y);
