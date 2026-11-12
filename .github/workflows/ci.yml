@@ -26,29 +26,11 @@ jobs:
         build_type: [Release]
 
     steps:
-      # The project is a plain C application (no Qt). On Windows a MinGW
-      # toolchain is used: the aqt MinGW (tools_mingw1310) provides the gcc
-      # compiler and qmake.
-      - name: Install Qt (Windows)
-        uses: jurplel/install-qt-action@v4.3.1
-        if: runner.os == 'Windows'
-        with:
-          version: '6.10.3' # aqt has bug with latest qt versions in windows
-          target: 'desktop'
-          arch: 'win64_mingw'
-          cache: true
-          tools: 'tools_mingw1310'
-          aqtversion: ==3.3.*
-
-      - name: Install Qt (Linux)
-        uses: jurplel/install-qt-action@v4.3.1
-        if: runner.os == 'Linux'
-        with:
-          version: '6.12.0'
-          target: 'desktop'
-          arch: 'linux_gcc_64'
-          cache: true
-          aqtversion: ==3.3.*
+      # The project is a plain C application (no Qt), so no Qt installation
+      # is required: the CMake project (submodule/CMake/QuasarApp.cmake) only
+      # looks qmake up at configure time and continues if it is not found.
+      # Linux uses the pre-installed gcc, Windows the MinGW gcc installed
+      # from MSYS2 below.
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,19 +50,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libpng-dev
 
-      # The aqt MinGW does not ship libpng, so install the MinGW libpng from MSYS2 and
-      # point CMake at it (see the Windows configure step).
-      - name: Install libpng (Windows)
+      # The MinGW gcc compiler (mingw-w64-x86_64-gcc) and the MinGW libpng
+      # are installed from MSYS2 and CMake is pointed at the msys2 mingw64
+      # root (see the Windows configure step).
+      - name: Install MinGW gcc and libpng (Windows)
         id: msys2
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
-          install: mingw-w64-x86_64-libpng
+          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-libpng
+          suppress-deprecation-warnings: msystem-mingw64
 
-      # setup-msys2 only adds the MSYS2 root to the Windows PATH, so the test
-      # executable would not find libpng16-16.dll (and libz-1.dll) at runtime and
-      # fails with 0xc0000135 (STATUS_DLL_NOT_FOUND). Add the mingw64 bin
+      # setup-msys2 only adds the MSYS2 root to the Windows PATH, so the gcc
+      # compiler (the configure step) and the test executable (libpng16-16.dll
+      # and libz-1.dll at runtime) would not be found and the tests would
+      # fail with 0xc0000135 (STATUS_DLL_NOT_FOUND). Add the mingw64 bin
       # directory to the PATH for the build/test steps.
       - name: Add MSYS2 mingw64 bin to PATH (Windows)
         if: runner.os == 'Windows'
@@ -105,7 +90,6 @@ jobs:
           -G Ninja
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          -DCMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}
           -S ${{ github.workspace }}
 
       - name: Build
