@@ -338,7 +338,10 @@ int main(int argc, char *argv[])
 		result = 1;
 	}
 
-	file = fopen(result_file, "w");
+	/* Binary mode: the report must be byte-for-byte identical on every
+	 * platform, but in text mode the Windows C runtime converts every "\n"
+	 * to "\r\n" on write, which would break the byte-for-byte comparison. */
+	file = fopen(result_file, "wb");
 	if (!file) {
 		fprintf(stderr, "FAIL: fopen(%s): %s\n", result_file, strerror(errno));
 		result = 1;

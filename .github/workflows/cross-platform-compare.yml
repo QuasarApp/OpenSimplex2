@@ -20,6 +20,12 @@ jobs:
   benchmark:
     name: Benchmark (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    # Limit the GITHUB_TOKEN to what this job needs (CodeQL: "Workflow does
+    # not contain permissions"): contents: read for the checkout,
+    # actions: write for uploading the benchmark report artifact.
+    permissions:
+      contents: read
+      actions: write
 
     strategy:
       fail-fast: false
@@ -129,9 +135,14 @@ jobs:
       - name: Run cross-platform benchmark
         shell: bash
         run: |
-          cmake --build ${{ github.workspace }}/build --target OpenSimplex2_cross_platform_benchmark --config Release
-          head -n 8 ${{ github.workspace }}/build/cross_platform/noise_benchmark_results.txt
-          tail -n 2 ${{ github.workspace }}/build/cross_platform/noise_benchmark_results.txt
+          # The Windows workspace path (D:\a\...) contains backslashes, which
+          # the bash shell (Git Bash on the windows runner) would interpret as
+          # escape characters and mangle the path. Normalize the workspace
+          # path to forward slashes (a no-op on Linux and macOS).
+          ws="${GITHUB_WORKSPACE//\\//}"
+          cmake --build "$ws/build" --target OpenSimplex2_cross_platform_benchmark --config Release
+          head -n 8 "$ws/build/cross_platform/noise_benchmark_results.txt"
+          tail -n 2 "$ws/build/cross_platform/noise_benchmark_results.txt"
 
       # Publish the platform report for the comparison job.
       - name: Upload benchmark results
@@ -144,6 +155,10 @@ jobs:
   compare:
     name: Compare results (linux + windows + macos)
     runs-on: ubuntu-latest
+    # Limit the GITHUB_TOKEN to what this job needs: actions: read for
+    # downloading the benchmark report artifacts.
+    permissions:
+      actions: read
     # Waits for the benchmark jobs of all three platforms to complete.
     needs: benchmark
 

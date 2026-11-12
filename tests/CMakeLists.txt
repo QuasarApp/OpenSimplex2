@@ -38,10 +38,12 @@ target_link_libraries(${CROSS_PLATFORM_BENCHMARK} PRIVATE OpenSimplex2Interface 
 
 # The benchmark report must be bit-identical on all platforms, but arm64
 # compilers (Apple Silicon) may contract a*b+c into FMA instructions, which
-# changes the least significant bits of the results. Disable FMA for the
-# GNU/Clang builds (on x86-64 this is a no-op).
+# changes the least significant bits of the results. Disable FMA contraction
+# for the GNU/Clang builds (on x86-64 this is a no-op). -ffp-contract=off is
+# supported by both GCC and Clang (-mno-fma is rejected by Apple Clang on
+# arm64 macOS).
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(${CROSS_PLATFORM_BENCHMARK} PRIVATE -mno-fma)
+    target_compile_options(${CROSS_PLATFORM_BENCHMARK} PRIVATE -ffp-contract=off)
 endif()
 
 # The cross-platform comparison workflow

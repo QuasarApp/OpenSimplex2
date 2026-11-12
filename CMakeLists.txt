@@ -36,11 +36,13 @@ target_link_libraries(${CURRENT_PROJECT} INTERFACE ${CURRENT_PROJECT}C)
 # of the library byte-for-byte between Linux, Windows and macOS. The noise
 # code runs inside this target, so the same floating point guarantees apply:
 # arm64 compilers (Apple Silicon) may contract a*b+c into FMA instructions,
-# which changes the least significant bits of the results. Disable FMA for
-# the GNU/Clang builds (on x86-64 this is a no-op) so that the same input
-# parameters always produce bit-identical noise values on every platform.
+# which changes the least significant bits of the results. Disable FMA
+# contraction for the GNU/Clang builds (on x86-64 this is a no-op) so that
+# the same input parameters always produce bit-identical noise values on
+# every platform. -ffp-contract=off is supported by both GCC and Clang
+# (-mno-fma is rejected by Apple Clang on arm64 macOS).
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(${CURRENT_PROJECT}C PRIVATE -mno-fma)
+    target_compile_options(${CURRENT_PROJECT}C PRIVATE -ffp-contract=off)
 endif()
 
 option(OPENSIMPLEX2_TESTS "This option disables or enables tests of the ${PROJECT_NAME} project" ON)
