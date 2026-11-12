@@ -7,6 +7,8 @@
 #include <math.h>
 #include "OpenSimplex2F.h"
 
+#define NOISE_EPSILON 1e-6
+
 int main(void)
 {
 	struct OpenSimplex2F_context *ctx;
@@ -50,7 +52,25 @@ int main(void)
 		}
 	}
 
-	if (tests_passed) {
+	// Verify that noise values are within expected range [-1, 1]
+	printf("\nVerifying noise value range [-1, 1]...\n");
+	int range_check_passed = 1;
+	for (int i = 0; i < num_tests; i++) {
+		double x = test_points[i];
+		double result1 = OpenSimplex2F_noise1(ctx, x);
+		double result_fast = OpenSimplex2F_noise1_fast(ctx, x);
+
+		if (result1 < -1.0 - NOISE_EPSILON || result1 > 1.0 + NOISE_EPSILON) {
+			printf("noise1(%.1f) = %.6f is outside range [-1, 1]\n", x, result1);
+			range_check_passed = 0;
+		}
+		if (result_fast < -1.0 - NOISE_EPSILON || result_fast > 1.0 + NOISE_EPSILON) {
+			printf("noise1_fast(%.1f) = %.6f is outside range [-1, 1]\n", x, result_fast);
+			range_check_passed = 0;
+		}
+	}
+
+	if (tests_passed && range_check_passed) {
 		printf("\nAll tests passed!\n");
 	} else {
 		printf("\nSome tests failed!\n");

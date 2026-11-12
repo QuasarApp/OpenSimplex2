@@ -446,7 +446,7 @@ static void setup_gradients(void)
 		{ 1.0 },
 		{ -1.0 },
 	};
-	for (int i = 0; i < ARRAYSIZE(grad1); i++) {
+	for (i = 0; (size_t) i < ARRAYSIZE(grad1); i++) {
 		grad1[i].dx /= N1;
 	}
 	for (int i = 0; i < PSIZE; i++) {
@@ -640,12 +640,15 @@ double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x)
 		int base_idx = xsv & PMASK;
 		
 		// Use pre-computed gradient values from the lookup table
+		// Note: We use GRADIENTS_1D[ctx->perm[...]] directly to avoid the extra
+		// indirection through ctx->permGrad1. This is the correct implementation
+		// that matches the OpenSimplex2F algorithm.
 		int idx0 = ctx->perm[base_idx];
 		int idx1 = ctx->perm[(base_idx + 1) & PMASK];
 		
-		// Get gradient values
-		double g0 = ctx->permGrad1[idx0].dx;
-		double g1 = ctx->permGrad1[idx1].dx;
+		// Get gradient values directly from the static table using the permuted index
+		double g0 = GRADIENTS_1D[idx0].dx;
+		double g1 = GRADIENTS_1D[idx1].dx;
 		
 		// Compute contributions from both endpoints
 		{
@@ -684,14 +687,16 @@ double OpenSimplex2F_noise1_fast(struct OpenSimplex2F_context *ctx, double x)
 		double value = 0.0;
 		int base_idx = xsv & PMASK;
 		
-		// Use pre-computed gradient values from a dedicated fast lookup table
-		// This table stores the raw gradient values without any indirection
+		// Use pre-computed gradient values from the lookup table
+		// Note: We use GRADIENTS_1D[ctx->perm[...]] directly to avoid the extra
+		// indirection through ctx->permGrad1, while producing the same result.
 		int idx0 = ctx->perm[base_idx];
 		int idx1 = ctx->perm[(base_idx + 1) & PMASK];
 		
-		// Get gradient values directly
-		double g0 = ctx->permGrad1[idx0].dx;
-		double g1 = ctx->permGrad1[idx1].dx;
+		// Get gradient values directly from the static table using the permuted index
+		// This is equivalent to ctx->permGrad1[idx0].dx but with one less memory access
+		double g0 = GRADIENTS_1D[idx0].dx;
+		double g1 = GRADIENTS_1D[idx1].dx;
 		
 		// Compute contributions from both endpoints
 		{
