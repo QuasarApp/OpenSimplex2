@@ -133,16 +133,37 @@ The Makefile also builds the `test_OpenSimplex2F` binary (test source in
 
 ### Tests
 
+The tests use the [CTest](https://cmake.org/cmake/help/book/mastering-cmake/chapter/Testing%20With%20CMake%20and%20CTest.html)
+framework. The main test executable (`OpenSimplex2tests`, built from
+`tests/test_OpenSimplex2F.c`) implements every test in its own function
+(`test_noise2`, `test_noise3`, `test_noise4`); each of them is registered
+as a separate CTest test (see `tests/CMakeLists.txt`).
+
 To build the tests, keep the `OPENSIMPLEX2_TESTS` option enabled (default
-`ON`) and run the `test` target — it builds the `OpenSimplex2tests`
-executable from the `tests/` subdirectory and runs it (the targets are
-registered with the `addTests()` function of the QuasarApp CMake module):
+`ON`) and run the `test` target — it invokes CTest and executes all
+registered tests:
 
 ```
 cmake -B build
 cmake --build build
 cmake --build build --target test
 ```
+
+Individual tests can be run separately with CTest:
+
+```
+ctest --test-dir build -R test_noise3
+```
+
+or by passing the test name to the executable:
+
+```
+build/tests/OpenSimplex2tests test_noise3
+```
+
+The tests write 2D/3D/4D noise images (requires libpng) into the test
+directory of the build tree and check that all noise values stay within
+the expected `[-1, 1]` range.
 
 ## License
 

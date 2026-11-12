@@ -33,9 +33,11 @@ target_link_libraries(${CURRENT_PROJECT} INTERFACE ${CURRENT_PROJECT}C)
 
 option(OPENSIMPLEX2_TESTS "This option disables or enables tests of the ${PROJECT_NAME} project" ON)
 
-initAll()
-
 if (OPENSIMPLEX2_TESTS)
+    # CTest framework (see "Testing With CMake and CTest" chapter of the
+    # CMake documentation): enable_testing() creates the `test` build target
+    # that runs all tests registered in the tests/ subdirectory with ctest.
+    enable_testing()
     add_subdirectory(tests)
 else()
     message("The ${PROJECT_NAME} tests is disabled.")
