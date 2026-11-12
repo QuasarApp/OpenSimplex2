@@ -2,7 +2,7 @@
  * Copyright (C) 2019-2020 KdotJPG (original work, previous license:
  * CC0 1.0 Universal, public domain dedication).
  *
- * * Copyright (C) 2027 QuasarApp Group DOO
+ * * Copyright (C) 2026 QuasarApp Group DOO
  * Licensed under the GNU Lesser General Public License v3.0 (LGPL-3.0),
  * see the accompanying LICENSE file.
  */
@@ -28,6 +28,7 @@
 
 #define PSIZE (2048)
 #define PMASK (2047)
+static const double N1 = 0.040534545116540165;
 static const double N2 = 0.01001634121365712;
 static const double N3 = 0.030485933181293584;
 static const double N4 = 0.009202377986303158;
@@ -49,6 +50,10 @@ static const double N5 = 0.006325612644835935;
 #define B1101 0x0d
 #define B1110 0x0e
 #define B1111 0x0f
+
+struct Grad1 {
+	double dx;
+};
 
 struct Grad2 {
 	double dx, dy;
@@ -179,6 +184,7 @@ static struct LatticePoint5D *new_LatticePoint5D(int xsv, int ysv, int zsv, int 
 
 struct OpenSimplex2F_context {
 	int16_t *perm;
+	struct Grad1 *permGrad1;
 	struct Grad2 *permGrad2;
 	struct Grad3 *permGrad3;
 	struct Grad4 *permGrad4;
@@ -187,6 +193,7 @@ struct OpenSimplex2F_context {
 
 #define ARRAYSIZE(x) (sizeof(x) / sizeof((x)[0]))
 
+static struct Grad1 GRADIENTS_1D[PSIZE];
 static struct Grad2 GRADIENTS_2D[PSIZE];
 static struct Grad3 GRADIENTS_3D[PSIZE];
 static struct Grad4 GRADIENTS_4D[PSIZE];
@@ -447,6 +454,18 @@ static void setup_gradients(void)
 		return;
 	already_did = 1;
 
+	// 1D gradient table - just two directions
+	struct Grad1 grad1[] = {
+		{ 1.0 },
+		{ -1.0 },
+	};
+	for (i = 0; (size_t) i < ARRAYSIZE(grad1); i++) {
+		grad1[i].dx /= N1;
+	}
+	for (int i = 0; i < PSIZE; i++) {
+		GRADIENTS_1D[i] = grad1[i % ARRAYSIZE(grad1)];
+	}
+
 	for (i = 0; (size_t) i < ARRAYSIZE(grad2); i++) {
 		grad2[i].dx /= N2; grad2[i].dy /= N2;
 	}
@@ -586,6 +605,8 @@ void OpenSimplex2F_shutdown(void)
 
 void OpenSimplex2F_free(struct OpenSimplex2F_context *ctx)
 {
+	if (ctx->permGrad1)
+		free(ctx->permGrad1);
 	if (ctx->perm)
 		free(ctx->perm);
 	if (ctx->permGrad2)
@@ -618,13 +639,14 @@ int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx)
 	}
 	*ctx = c;
 
+	c->permGrad1 = calloc(1, sizeof(*c->permGrad1) * PSIZE);
 	c->perm = calloc(1, sizeof(*c->perm) * PSIZE);
 	c->permGrad2 = calloc(1, sizeof(*c->permGrad2) * PSIZE);
 	c->permGrad3 = calloc(1, sizeof(*c->permGrad3) * PSIZE);
 	c->permGrad4 = calloc(1, sizeof(*c->permGrad4) * PSIZE);
 	c->permGrad5 = calloc(1, sizeof(*c->permGrad5) * PSIZE);
 
-	if (!c->perm || !c->permGrad2 || !c->permGrad3 || !c->permGrad4 || !c->permGrad5) {
+	if (!c->permGrad1 || !c->perm || !c->permGrad2 || !c->permGrad3 || !c->permGrad4 || !c->permGrad5) {
 		OpenSimplex2F_free(*ctx);
 		*ctx = NULL;
 		free(source);
@@ -640,6 +662,7 @@ int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx)
 		if (r < 0)
 			r += (i + 1);
 		c->perm[i] = source[r];
+		c->permGrad1[i] = GRADIENTS_1D[c->perm[i]];
 		c->permGrad2[i] = GRADIENTS_2D[c->perm[i]];
 		c->permGrad3[i] = GRADIENTS_3D[c->perm[i]];
 		c->permGrad4[i] = GRADIENTS_4D[c->perm[i]];
@@ -653,6 +676,57 @@ static int fastFloor(double x)
 {
 	int xi = (int)x;
 	return x < xi ? xi - 1 : xi;
+}
+
+/**
+ * 1D Simplex noise - super fast implementation.
+ * A 1-simplex is just a line segment, so we only need to check two points.
+ * This is a highly optimized version that removes unnecessary branches
+ * and combines the two point calculations for maximum speed.
+ */
+double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x)
+{
+	// Skew the input space to determine the simplex cell
+	int xsv = (int) fastFloor(x);
+	double xsi = x - xsv;
+
+	// For 1D, we only have two points: origin and one point at distance 1
+	// The simplex is just a line segment from (0,0) to (1,1) in 1D
+	//
+	// Since xsi is always in [0, 1), the distance to each point is <= 0.5,
+	// meaning attn = 0.5 - dx*dx is always >= 0.25 > 0
+	// Therefore, we can skip the branch check and always compute both points.
+	//
+	// Optimization: Combine both point calculations into a single loop
+	// to improve branch prediction and reduce code size.
+	{
+		double value = 0.0;
+		int base_idx = xsv & PMASK;
+		int next_idx = (xsv + 1) & PMASK;
+		
+		// Pre-compute permuted gradient indices
+		int idx0 = ctx->perm[base_idx];
+		int idx1 = ctx->perm[next_idx];
+		
+		// Get gradients
+		double g0 = ctx->permGrad1[idx0].dx;
+		double g1 = ctx->permGrad1[idx1].dx;
+		
+		// Compute contributions from both endpoints
+		// Point at 0: distance = xsi, attenuation = 0.5 - xsi^2
+		// Point at 1: distance = xsi - 1, attenuation = 0.5 - (xsi-1)^2
+		{
+			double dx0 = xsi;
+			double dx1 = xsi - 1.0;
+			
+			double a0 = 0.5 - dx0 * dx0;
+			double a1 = 0.5 - dx1 * dx1;
+			
+			value += a0 * a0 * (g0 * dx0);
+			value += a1 * a1 * (g1 * dx1);
+		}
+		return value * N1;
+	}
 }
 
 /*

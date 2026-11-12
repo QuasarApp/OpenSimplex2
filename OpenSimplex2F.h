@@ -2,7 +2,7 @@
  * Copyright (C) 2019-2020 KdotJPG (original work, previous license:
  * CC0 1.0 Universal, public domain dedication).
  *
- * *Copyright (C) 2027 QuasarApp Group DOO
+ * Copyright (C) 2026 QuasarApp Group DOO
  * Licensed under the GNU Lesser General Public License v3.0 (LGPL-3.0),
  * see the accompanying LICENSE file.
  */
@@ -51,6 +51,13 @@ void OpenSimplex2F_free(struct OpenSimplex2F_context * ctx);
 
 /* Free singleton lattice point data */
 void OpenSimplex2F_shutdown(void);
+
+/**
+ * 1D Simplex noise - super fast implementation.
+ * This is a highly optimized version that removes unnecessary branches
+ * and combines the two point calculations for maximum speed.
+ */
+double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x);
 
 /**
  * 2D Simplex noise, standard lattice orientation.
@@ -115,38 +122,6 @@ double OpenSimplex2F_noise4_XZBeforeYW(struct OpenSimplex2F_context *ctx, double
  * Recommended for time-varied animations which texture a 3D object (W=time)
  */
 double OpenSimplex2F_noise4_XYZBeforeW(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w);
-
-/**
- * 5D OpenSimplex2F noise, classic lattice orientation.
- * Foundation for higher-dimensional noise generation.
- * Use noise5_XBeforeY or noise5_XYBeforeZ for better visual isotropy in specific dimensions.
- * Recommended for 4D terrain, time-varied animations, and procedural content generation.
- */
-double OpenSimplex2F_noise5_Classic(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
-
-/**
- * 5D OpenSimplex2F noise, with X before Y orientation.
- * Recommended when X is the primary spatial dimension and Y is secondary.
- */
-double OpenSimplex2F_noise5_XBeforeY(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
-
-/**
- * 5D OpenSimplex2F noise, with XY before Z orientation.
- * Recommended for 3D terrain with time and an extra dimension.
- */
-double OpenSimplex2F_noise5_XYBeforeZ(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
-
-/**
- * 5D OpenSimplex2F noise, with XYZ before W orientation.
- * Recommended for time-varied 3D animations with an additional control dimension.
- */
-double OpenSimplex2F_noise5_XYZBeforeW(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
-
-/**
- * 5D OpenSimplex2F noise, with XYZW before V orientation.
- * Recommended for 4D terrain with time or for complex procedural generation.
- */
-double OpenSimplex2F_noise5_XYZWBeforeV(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
 
 #ifdef __cplusplus
 	}
