@@ -40,39 +40,11 @@ jobs:
             platform: macos
 
     steps:
-      # The project is plain C (no Qt code), but the CMake project
-      # (submodule/CMake/QuasarApp.cmake) looks for qmake at configure time,
-      # so Qt must be installed on every platform (same setup as ci.yml).
-      - name: Install Qt (Windows)
-        uses: jurplel/install-qt-action@v4.3.1
-        if: runner.os == 'Windows'
-        with:
-          version: '6.10.3' # aqt has bug with latest qt versions in windows
-          target: 'desktop'
-          arch: 'win64_mingw'
-          cache: true
-          tools: 'tools_mingw1310'
-          aqtversion: ==3.3.*
-
-      - name: Install Qt (Linux)
-        uses: jurplel/install-qt-action@v4.3.1
-        if: runner.os == 'Linux'
-        with:
-          version: '6.12.0'
-          target: 'desktop'
-          arch: 'linux_gcc_64'
-          cache: true
-          aqtversion: ==3.3.*
-
-      - name: Install Qt (macOS)
-        uses: jurplel/install-qt-action@v4.3.1
-        if: runner.os == 'macOS'
-        with:
-          version: '6.10.3'
-          target: 'desktop'
-          arch: 'clang_64'
-          cache: true
-          aqtversion: ==3.3.*
+      # The project is plain C (no Qt code), so no Qt installation is
+      # required: the CMake project (submodule/CMake/QuasarApp.cmake) only
+      # looks qmake up at configure time and continues if it is not found.
+      # Linux and macOS use the pre-installed gcc/clang, Windows the MinGW
+      # gcc installed from MSYS2 below (same setup as ci.yml).
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -87,19 +59,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libpng-dev
 
-      # The aqt MinGW does not ship libpng, so install the MinGW libpng from
-      # MSYS2 and point CMake at it (same setup as ci.yml).
-      - name: Install libpng (Windows)
+      # The MinGW gcc compiler (mingw-w64-x86_64-gcc) and the MinGW libpng
+      # are installed from MSYS2 and CMake is pointed at the msys2 mingw64
+      # root (see the Windows configure step, same setup as ci.yml).
+      - name: Install MinGW gcc and libpng (Windows)
         id: msys2
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
-          install: mingw-w64-x86_64-libpng
+          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-libpng
+          suppress-deprecation-warnings: msystem-mingw64
 
-      # setup-msys2 only adds the MSYS2 root to the Windows PATH, so the
-      # compiled binaries would not find libpng16-16.dll (and libz-1.dll) at
-      # runtime and fail with 0xc0000135 (STATUS_DLL_NOT_FOUND).
+      # setup-msys2 only adds the MSYS2 root to the Windows PATH, so the gcc
+      # compiler (the configure step) and the compiled binaries (libpng16-16.dll
+      # and libz-1.dll at runtime) would not be found and fail with 0xc0000135
+      # (STATUS_DLL_NOT_FOUND).
       - name: Add MSYS2 mingw64 bin to PATH (Windows)
         if: runner.os == 'Windows'
         run: |
@@ -124,7 +99,6 @@ jobs:
           cmake -B ${{ github.workspace }}/build
           -G Ninja
           -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}
           -S ${{ github.workspace }}
 
       - name: Build
