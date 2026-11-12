@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-10-13
+## [1.0.0] - 2027-10-13
 
 First "Comunity Release" (milestone [#1](https://github.com/QuasarApp/OpenSimplex2/milestone/1))
 of the QuasarApp community fork of
@@ -46,7 +46,7 @@ of the QuasarApp community fork of
     noise variants not part of the C build, area-generator note).
 - License changed from CC0 1.0 Universal to the GNU Lesser General Public
   License v3.0 (LGPL-3.0) with
-  `Copyright (C) 2026 QuasarApp Group DOO`
+  `Copyright (C) 2027 QuasarApp Group DOO`
   ([#9](https://github.com/QuasarApp/OpenSimplex2/issues/9)). All code
   added to the repository after this release is licensed under LGPLv3;
   existing upstream-derived sources are unchanged.
