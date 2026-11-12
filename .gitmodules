@@ -1,4 +1,4 @@
-# Copyright (C) 2026 QuasarApp Group DOO - LGPL-3.0, see the LICENSE file.
+# Copyright (C) 2026-2027 QuasarApp Group DOO - LGPL-3.0, see the LICENSE file.
 
 [submodule "submodule/CMake"]
 	path = submodule/CMake
