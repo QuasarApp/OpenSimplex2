@@ -1,0 +1,200 @@
+# Copyright (C) 2026 QuasarApp Group DOO
+# Licensed under the GNU Lesser General Public License v3.0 (LGPL-3.0),
+# see the accompanying LICENSE file.
+
+name: Cross-Platform Noise Benchmark
+
+# Runs the cross-platform benchmark (tests/test_OpenSimplex2F_cross_platform.c)
+# on all three platforms - Linux, Windows and macOS - with the same seed and
+# the same input parameters, waits for all three jobs to complete (needs),
+# and then compares the produced result files byte-for-byte. The noise
+# functions must return bit-identical results for the same input parameters,
+# so any difference between the platforms fails the comparison job.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  # Allows maintainers to trigger a manual run (e.g. to test the pipeline).
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    name: Benchmark (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    # Limit the GITHUB_TOKEN to what this job needs (CodeQL: "Workflow does
+    # not contain permissions"): contents: read for the checkout,
+    # actions: write for uploading the benchmark report artifact.
+    permissions:
+      contents: read
+      actions: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: windows
+          - os: macos-latest
+            platform: macos
+
+    steps:
+      # The project is plain C (no Qt code), but the CMake project
+      # (submodule/CMake/QuasarApp.cmake) looks for qmake at configure time,
+      # so Qt must be installed on every platform (same setup as ci.yml).
+      - name: Install Qt (Windows)
+        uses: jurplel/install-qt-action@v4.3.1
+        if: runner.os == 'Windows'
+        with:
+          version: '6.10.3' # aqt has bug with latest qt versions in windows
+          target: 'desktop'
+          arch: 'win64_mingw'
+          cache: true
+          tools: 'tools_mingw1310'
+          aqtversion: ==3.3.*
+
+      - name: Install Qt (Linux)
+        uses: jurplel/install-qt-action@v4.3.1
+        if: runner.os == 'Linux'
+        with:
+          version: '6.12.0'
+          target: 'desktop'
+          arch: 'linux_gcc_64'
+          cache: true
+          aqtversion: ==3.3.*
+
+      - name: Install Qt (macOS)
+        uses: jurplel/install-qt-action@v4.3.1
+        if: runner.os == 'macOS'
+        with:
+          version: '6.10.3'
+          target: 'desktop'
+          arch: 'clang_64'
+          cache: true
+          aqtversion: ==3.3.*
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # The project links against libpng (find_package(PNG REQUIRED) in
+      # tests/CMakeLists.txt), so it must be available on every platform.
+      - name: Install libpng (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpng-dev
+
+      # The aqt MinGW does not ship libpng, so install the MinGW libpng from
+      # MSYS2 and point CMake at it (same setup as ci.yml).
+      - name: Install libpng (Windows)
+        id: msys2
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-libpng
+
+      # setup-msys2 only adds the MSYS2 root to the Windows PATH, so the
+      # compiled binaries would not find libpng16-16.dll (and libz-1.dll) at
+      # runtime and fail with 0xc0000135 (STATUS_DLL_NOT_FOUND).
+      - name: Add MSYS2 mingw64 bin to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          Add-Content "$env:GITHUB_PATH" "${{ steps.msys2.outputs.msys2-location }}/mingw64/bin"
+
+      # libpng is part of the Xcode command line tools on macOS, nothing to
+      # install.
+
+      - name: Configure CMake (Windows)
+        if: runner.os == 'Windows'
+        run: >
+          cmake -B ${{ github.workspace }}/build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_C_COMPILER=gcc
+          -DCMAKE_PREFIX_PATH=${{ steps.msys2.outputs.msys2-location }}/mingw64
+          -S ${{ github.workspace }}
+
+      - name: Configure CMake (Linux and macOS)
+        if: runner.os != 'Windows'
+        run: >
+          cmake -B ${{ github.workspace }}/build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}
+          -S ${{ github.workspace }}
+
+      - name: Build
+        run: cmake --build ${{ github.workspace }}/build --config Release --parallel 4
+      # Runs the OpenSimplex2_cross_platform_benchmark target, which evaluates
+      # all noise functions with the same input parameters and writes
+      # noise_benchmark_results.txt into build/cross_platform.
+      - name: Run cross-platform benchmark
+        shell: bash
+        run: |
+          # The Windows workspace path (D:\a\...) contains backslashes, which
+          # the bash shell (Git Bash on the windows runner) would interpret as
+          # escape characters and mangle the path. Normalize the workspace
+          # path to forward slashes (a no-op on Linux and macOS).
+          ws="${GITHUB_WORKSPACE//\\//}"
+          cmake --build "$ws/build" --target OpenSimplex2_cross_platform_benchmark --config Release
+          head -n 8 "$ws/build/cross_platform/noise_benchmark_results.txt"
+          tail -n 2 "$ws/build/cross_platform/noise_benchmark_results.txt"
+
+      # Publish the platform report for the comparison job.
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: noise-benchmark-${{ matrix.platform }}
+          path: ${{ github.workspace }}/build/cross_platform/noise_benchmark_results.txt
+          if-no-files-found: error
+
+  compare:
+    name: Compare results (linux + windows + macos)
+    runs-on: ubuntu-latest
+    # Limit the GITHUB_TOKEN to what this job needs: actions: read for
+    # downloading the benchmark report artifacts.
+    permissions:
+      actions: read
+    # Waits for the benchmark jobs of all three platforms to complete.
+    needs: benchmark
+
+    steps:
+      # Downloads all uploaded reports into results/<artifact-name>/.
+      - name: Download benchmark results
+        uses: actions/download-artifact@v4
+        with:
+          path: results
+
+      - name: Compare the results byte-for-byte
+        run: |
+          set -euo pipefail
+          linux=results/noise-benchmark-linux/noise_benchmark_results.txt
+          windows=results/noise-benchmark-windows/noise_benchmark_results.txt
+          macos=results/noise-benchmark-macos/noise_benchmark_results.txt
+          for f in "$linux" "$windows" "$macos"; do
+            [ -s "$f" ] || { echo "FAIL: missing or empty result file: $f"; exit 1; }
+          done
+          echo "--- FNV-1a report checksums ---"
+          grep '^checksum=' "$linux" "$windows" "$macos"
+          echo "--- sha256 of the complete report files ---"
+          sha256sum "$linux" "$windows" "$macos"
+          echo "--- head of the report ---"
+          head -n 8 "$linux"
+          echo "--- tail of the report ---"
+          tail -n 2 "$linux"
+          if ! cmp -s "$linux" "$windows"; then
+            echo "FAIL: the linux and windows noise results differ"
+            diff -u "$linux" "$windows" | head -n 50 || true
+            exit 1
+          fi
+          if ! cmp -s "$linux" "$macos"; then
+            echo "FAIL: the linux and macos noise results differ"
+            diff -u "$linux" "$macos" | head -n 50 || true
+            exit 1
+          fi
+          echo "OK: all three platforms produced bit-identical noise results for the same input parameters"
+
