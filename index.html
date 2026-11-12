@@ -789,14 +789,27 @@ subdirectory — for example as a git submodule:</p>
 <code>tests/test_OpenSimplex2F.c</code>), which writes 2D/3D/4D noise images
 (requires libpng).</p>
 <h3 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">&para;</a></h3>
+<p>The tests use the <a href="https://cmake.org/cmake/help/book/mastering-cmake/chapter/Testing%20With%20CMake%20and%20CTest.html">CTest</a>
+framework. The main test executable (<code>OpenSimplex2tests</code>, built from
+<code>tests/test_OpenSimplex2F.c</code>) implements every test in its own function
+(<code>test_noise2</code>, <code>test_noise3</code>, <code>test_noise4</code>); each of them is registered
+as a separate CTest test (see <code>tests/CMakeLists.txt</code>).</p>
 <p>To build the tests, keep the <code>OPENSIMPLEX2_TESTS</code> option enabled (default
-<code>ON</code>) and run the <code>test</code> target — it builds the <code>OpenSimplex2tests</code>
-executable from the <code>tests/</code> subdirectory and runs it (the targets are
-registered with the <code>addTests()</code> function of the QuasarApp CMake module):</p>
+<code>ON</code>) and run the <code>test</code> target — it invokes CTest and executes all
+registered tests:</p>
 <div class="highlight"><pre><span></span><code>cmake -B build
 cmake --build build
 cmake --build build --target test
 </code></pre></div>
+<p>Individual tests can be run separately with CTest:</p>
+<div class="highlight"><pre><span></span><code>ctest --test-dir build -R test_noise3
+</code></pre></div>
+<p>or by passing the test name to the executable:</p>
+<div class="highlight"><pre><span></span><code>build/tests/OpenSimplex2tests test_noise3
+</code></pre></div>
+<p>The tests write 2D/3D/4D noise images (requires libpng) into the test
+directory of the build tree and check that all noise values stay within
+the expected <code>[-1, 1]</code> range.</p>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
 <p>This project is provided under the license defined in the
 <a href="LICENSE">LICENSE</a> file.</p>
