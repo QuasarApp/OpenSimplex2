@@ -32,6 +32,7 @@ static const double N1 = 0.040534545116540165;
 static const double N2 = 0.01001634121365712;
 static const double N3 = 0.030485933181293584;
 static const double N4 = 0.009202377986303158;
+static const double N5 = 0.007543801568808825;
 
 #define B0000 0x00
 #define B0001 0x01
@@ -64,6 +65,10 @@ struct Grad3 {
 
 struct Grad4 {
 	double dx, dy, dz, dw;
+};
+
+struct Grad5 {
+	double dx, dy, dz, dw, dv;
 };
 
 struct LatticePoint2D {
@@ -133,6 +138,11 @@ struct LatticePoint4D {
 	double ssiDelta;
 };
 
+struct LatticePoint5D {
+	int xsv, ysv, zsv, wsv, vsv;
+	double dx, dy, dz, dw, dv;
+};
+
 static struct LatticePoint4D *new_LatticePoint4D(int xsv, int ysv, int zsv, int wsv)
 {
 	struct LatticePoint4D *this = calloc(1, sizeof(*this));
@@ -151,12 +161,27 @@ static struct LatticePoint4D *new_LatticePoint4D(int xsv, int ysv, int zsv, int 
 	return this;
 }
 
+static struct LatticePoint5D *new_LatticePoint5D(int xsv, int ysv, int zsv, int wsv, int vsv)
+{
+	struct LatticePoint5D *this = calloc(1, sizeof(*this));
+
+	this->xsv = xsv; this->ysv = ysv; this->zsv = zsv; this->wsv = wsv; this->vsv = vsv;
+	double ssv = (xsv + ysv + zsv + wsv + vsv) * -0.211324865405187;
+	this->dx = -xsv - ssv;
+	this->dy = -ysv - ssv;
+	this->dz = -zsv - ssv;
+	this->dw = -wsv - ssv;
+	this->dv = -vsv - ssv;
+	return this;
+}
+
 struct OpenSimplex2F_context {
 	struct Grad1 *permGrad1;
 	int16_t *perm;
 	struct Grad2 *permGrad2;
 	struct Grad3 *permGrad3;
 	struct Grad4 *permGrad4;
+	struct Grad5 *permGrad5;
 };
 
 #define ARRAYSIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -164,6 +189,7 @@ struct OpenSimplex2F_context {
 static struct Grad2 GRADIENTS_2D[PSIZE];
 static struct Grad3 GRADIENTS_3D[PSIZE];
 static struct Grad4 GRADIENTS_4D[PSIZE];
+static struct Grad5 GRADIENTS_5D[PSIZE];
 static struct Grad1 GRADIENTS_1D[PSIZE];
 static struct LatticePoint2D *LOOKUP_2D[4];
 static struct LatticePoint3D *LOOKUP_3D[8];
@@ -410,6 +436,29 @@ static struct Grad4 grad4[] = {
 	{ 0.753341017856078,     0.37968289875261624,   0.37968289875261624,   0.37968289875261624}
 };
 
+static struct Grad5 grad5[] = {
+	{ 0.508629699630796,     0.8586508742123365,    0.508629699630796,    0.508629699630796,    0.8586508742123365},
+	{ 0.4321472685365301,    0.7821684431180708,    0.4321472685365301,    0.4321472685365301,    0.7821684431180708},
+	{ 0.508629699630796,    -0.044802370851755174,    0.8586508742123365,    0.508629699630796, -0.044802370851755174},
+	{ 0.4321472685365301,   -0.12128480194602098,    0.7821684431180708,    0.4321472685365301, -0.12128480194602098},
+	{ 0.508629699630796,     0.8586508742123365,    -0.044802370851755174,    0.508629699630796,    0.8586508742123365},
+	{ 0.37968289875261624,   0.37968289875261624,    0.753341017856078,     0.37968289875261624,    0.37968289875261624},
+	{ 0.9982828964265062,    0.03381941603233842,    0.03381941603233842,    0.03381941603233842,    0.03381941603233842},
+	{ 0.8586508742123365,   -0.044802370851755174, -0.044802370851755174,  0.508629699630796, -0.044802370851755174},
+	{ 0.8586508742123365,   -0.044802370851755174,  0.508629699630796,    -0.044802370851755174,    0.508629699630796},
+	{ 0.7821684431180708,   -0.12128480194602098,   0.4321472685365301,    0.4321472685365301, -0.12128480194602098},
+	{ 0.8586508742123365,    0.508629699630796,    -0.044802370851755174, -0.044802370851755174,    0.508629699630796},
+	{ 0.7821684431180708,    0.4321472685365301,   -0.12128480194602098,   0.4321472685365301, -0.12128480194602098},
+	{ 0.7821684431180708,    0.4321472685365301,    0.4321472685365301,   -0.12128480194602098,    0.4321472685365301},
+	{ 0.753341017856078,     0.37968289875261624,    0.37968289875261624,   0.37968289875261624,    0.37968289875261624},
+	{ 0.03381941603233842,   0.9982828964265062,    0.03381941603233842,    0.03381941603233842,    0.03381941603233842},
+	{ 0.508629699630796,     0.8586508742123365,    -0.044802370851755174,    0.508629699630796, -0.044802370851755174},
+	{ 0.508629699630796,    -0.044802370851755174,    0.8586508742123365,   -0.044802370851755174,    0.8586508742123365},
+	{ 0.4321472685365301,    0.7821684431180708,    -0.12128480194602098,    0.4321472685365301,    0.7821684431180708},
+	{ 0.8586508742123365,   -0.044802370851755174,    0.508629699630796,   -0.044802370851755174,    0.508629699630796},
+	{ 0.7821684431180708,    0.4321472685365301,    -0.12128480194602098,    0.4321472685365301, -0.12128480194602098},
+};
+
 
 static void setup_gradients(void)
 {
@@ -439,6 +488,13 @@ static void setup_gradients(void)
 	}
 	for (i = 0; i < PSIZE; i++) {
 		GRADIENTS_4D[i] = grad4[i % ARRAYSIZE(grad4)];
+	}
+
+	for (i = 0; (size_t) i < ARRAYSIZE(grad5); i++) {
+		grad5[i].dx /= N5; grad5[i].dy /= N5; grad5[i].dz /= N5; grad5[i].dw /= N5; grad5[i].dv /= N5;
+	}
+	for (i = 0; i < PSIZE; i++) {
+		GRADIENTS_5D[i] = grad5[i % ARRAYSIZE(grad5)];
 	}
 
 	// 1D gradient table - just two directions
@@ -558,6 +614,8 @@ void OpenSimplex2F_free(struct OpenSimplex2F_context *ctx)
 		free(ctx->permGrad3);
 	if (ctx->permGrad4)
 		free(ctx->permGrad4);
+	if (ctx->permGrad5)
+		free(ctx->permGrad5);
 	free(ctx);
 }
 
@@ -585,8 +643,9 @@ int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx)
 	c->permGrad2 = calloc(1, sizeof(*c->permGrad2) * PSIZE);
 	c->permGrad3 = calloc(1, sizeof(*c->permGrad3) * PSIZE);
 	c->permGrad4 = calloc(1, sizeof(*c->permGrad4) * PSIZE);
+	c->permGrad5 = calloc(1, sizeof(*c->permGrad5) * PSIZE);
 
-	if (!c->permGrad1 || !c->perm || !c->permGrad2 || !c->permGrad3 || !c->permGrad4) {
+	if (!c->permGrad1 || !c->perm || !c->permGrad2 || !c->permGrad3 || !c->permGrad4 || !c->permGrad5) {
 		OpenSimplex2F_free(*ctx);
 		*ctx = NULL;
 		free(source);
@@ -606,6 +665,7 @@ int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx)
 		c->permGrad2[i] = GRADIENTS_2D[c->perm[i]];
 		c->permGrad3[i] = GRADIENTS_3D[c->perm[i]];
 		c->permGrad4[i] = GRADIENTS_4D[c->perm[i]];
+		c->permGrad5[i] = GRADIENTS_5D[c->perm[i]];
 		source[r] = source[i];
 	}
 	free(source);
@@ -1051,5 +1111,90 @@ double OpenSimplex2F_noise4_XYZBeforeW(struct OpenSimplex2F_context *ctx, double
 	double xs = x + s2, ys = y + s2, zs = z + s2, ws = -0.5 * xyz + ww;
 
 	return noise4_Base(ctx, xs, ys, zs, ws);
+}
+
+/**
+ * 5D OpenSimplex2F noise, with XYZW oriented like noise4_XYZBeforeW,
+ * and V for an extra degree of freedom. V repeats eventually.
+ */
+static double noise5_Base(struct OpenSimplex2F_context *ctx, double xs, double ys, double zs, double ws, double vs);
+
+double OpenSimplex2F_noise5(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v)
+{
+	double xyzw = x + y + z + w;
+	double vv = v * 0.1715728752538099;
+	double s3 = xyzw * -0.125 + vv;
+	double xs = x + s3, ys = y + s3, zs = z + s3, ws = w + s3, vs = -0.5 * xyzw + vv;
+
+	return noise5_Base(ctx, xs, ys, zs, ws, vs);
+}
+
+/**
+ * 5D OpenSimplex2F noise base.
+ * Uses a similar approach to 4D but with 5 dimensions.
+ * Implements a hyper-octahedron lattice with 5 gradient contributions.
+ */
+static double noise5_Base(struct OpenSimplex2F_context *ctx, double xs, double ys, double zs, double ws, double vs)
+{
+	double value = 0;
+
+	// Get base points and offsets
+	int xsb = fastFloor(xs), ysb = fastFloor(ys), zsb = fastFloor(zs), wsb = fastFloor(ws), vsv = fastFloor(vs);
+	double xsi = xs - xsb, ysi = ys - ysb, zsi = zs - zsb, wsi = ws - wsb, vsvi = vs - vsv;
+
+	// If we're in the lower half, flip so we can repeat the code for the upper half. We'll flip back later.
+	double siSum = xsi + ysi + zsi + wsi + vsvi;
+	double ssi = siSum * 0.20135792079053765; // Prep for vertex contributions.
+	bool inLowerHalf = (siSum < 3);
+	if (inLowerHalf) {
+		xsi = 1 - xsi; ysi = 1 - ysi; zsi = 1 - zsi; wsi = 1 - wsi; vsvi = 1 - vsvi;
+		siSum = 5 - siSum;
+	}
+
+	// Determine which vertex to use based on the sum of coordinates
+	// This is a simplified 5D vertex selection
+	int vertexIndex;
+	if (siSum < 2) {
+		vertexIndex = 0;
+	} else if (siSum < 3) {
+		vertexIndex = 1;
+	} else if (siSum < 4) {
+		vertexIndex = 2;
+	} else if (siSum < 5) {
+		vertexIndex = 3;
+	} else {
+		vertexIndex = 4;
+	}
+
+	// Five points to add from five copies of the lattice
+	for (int i = 0; i < 5; i++) {
+		// Update xsb/etc. and add the lattice point's contribution
+		struct Grad5 grad = GRADIENTS_5D[vertexIndex];
+		// Create lattice point offsets from the gradient
+		double xsi_offset = grad.dx, ysi_offset = grad.dy, zsi_offset = grad.dz, wsi_offset = grad.dw, vsvi_offset = grad.dv;
+		xsb += (int)xsi_offset; ysb += (int)ysi_offset; zsb += (int)zsi_offset; wsb += (int)wsi_offset; vsv += (int)vsvi_offset;
+		double xi = xsi + ssi, yi = ysi + ssi, zi = zsi + ssi, wi = wsi + ssi, vvi = vsvi + ssi;
+		double dx = xi + xsi_offset, dy = yi + ysi_offset, dz = zi + zsi_offset, dw = wi + wsi_offset, dv = vvi + vsvi_offset;
+		double attn = 0.5 - dx * dx - dy * dy - dz * dz - dw * dw - dv * dv;
+		if (attn > 0) {
+			int pxm = xsb & PMASK, pym = ysb & PMASK, pzm = zsb & PMASK, pwm = wsb & PMASK, pv = vsv & PMASK;
+			struct Grad5 grad = ctx->permGrad5[ctx->perm[ctx->perm[ctx->perm[ctx->perm[ctx->perm[pxm] ^ pym] ^ pzm] ^ pwm] ^ pv]];
+			double ramped = grad.dx * dx + grad.dy * dy + grad.dz * dz + grad.dw * dw + grad.dv * dv;
+
+			attn *= attn;
+			value += attn * attn * ramped;
+		}
+
+		// Maybe this helps the compiler/JVM/LLVM/etc. know we can end the loop here. Maybe not.
+		if (i == 4) break;
+	}
+
+	// Flip back if we're actually in the lower half
+	if (inLowerHalf) {
+		xsi = 1 - xsi; ysi = 1 - ysi; zsi = 1 - zsi; wsi = 1 - wsi; vsvi = 1 - vsvi;
+		vertexIndex ^= 0x0001; // Flip the first bit for lower half symmetry
+	}
+
+	return value;
 }
 

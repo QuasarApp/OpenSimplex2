@@ -41,6 +41,14 @@
 	extern "C" {
 #endif
 
+struct Grad4 {
+	double dx, dy, dz, dw;
+};
+
+struct Grad5 {
+	double dx, dy, dz, dw, dv;
+};
+
 struct OpenSimplex2F_context;
 
 /* Allocate and initialize OpenSimplex2F context */
@@ -128,6 +136,12 @@ double OpenSimplex2F_noise4_XZBeforeYW(struct OpenSimplex2F_context *ctx, double
  * Recommended for time-varied animations which texture a 3D object (W=time)
  */
 double OpenSimplex2F_noise4_XYZBeforeW(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w);
+
+/**
+ * 5D OpenSimplex2F noise, with XYZW oriented like noise4_XYZBeforeW,
+ * and V for an extra degree of freedom. V repeats eventually.
+ */
+double OpenSimplex2F_noise5(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
 
 #ifdef __cplusplus
 	}
