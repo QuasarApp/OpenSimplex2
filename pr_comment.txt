@@ -1,0 +1,39 @@
+## Summary of Changes
+
+### Blocking Issues Fixed:
+
+1. **Attenuation Guard - FIXED**
+   - Added attenuation guards (`if (a <= 0.0) a = 0.0`) to both `OpenSimplex2F_noise1` and `OpenSimplex2F_noise1_fast`
+   - Fixed the incorrect comment claiming attn is always >= 0.25 (this was false for the far endpoint when xsi < 0.293)
+   - Both functions now properly clamp negative attenuation values to 0, preventing out-of-range output
+
+2. **Performance Optimization - FIXED**
+   - `OpenSimplex2F_noise1_fast` now correctly uses `ctx->permGrad1` for direct gradient lookup, avoiding one memory indirection
+   - `OpenSimplex2F_noise1` uses `GRADIENTS_1D[ctx->perm[idx]]` (two lookups)
+   - `OpenSimplex2F_noise1_fast` uses `ctx->permGrad1[idx]` (one lookup)
+   - This saves one memory indirection per gradient access
+
+3. **`-Wsign-compare` Warning - FIXED**
+   - Changed loop counter from `int` to `size_t` in `setup_gradients()` for the permutation array population loop
+   - Updated all array accesses to use `PSIZE - 1 - i` pattern to maintain correct permutation order
+
+4. **Test Improvements**
+   - Moved `test_1d_simple.c` to `tests/` directory
+   - Registered test in `tests/CMakeLists.txt`
+   - Added range validation to verify 1D noise produces non-zero output
+   - Removed test binary from repository (added to `.gitignore`)
+
+### Verification:
+
+- All tests pass: `./tests/test_1d_simple` shows both functions produce identical results
+- Both functions produce valid non-zero output (~0.225 max amplitude for the test points)
+- Code compiles cleanly with `-Wall -Wextra --pedantic -O3`
+
+### Files Changed:
+
+- `OpenSimplex2F.c` - Fixed attenuation guards, updated comments, fixed -Wsign-compare
+- `tests/CMakeLists.txt` - Added 1D test registration
+- `tests/test_1d_simple.c` - Updated test with range validation
+- `.gitignore` - Added test_1d_simple binary
+- `test_1d_simple` - Deleted binary file
+- `test_1d_simple.c` - Deleted from root (moved to tests/)
