@@ -449,7 +449,7 @@ static void setup_gradients(void)
 	for (i = 0; (size_t) i < ARRAYSIZE(grad1); i++) {
 		grad1[i].dx /= N1;
 	}
-	for (int i = 0; i < PSIZE; i++) {
+	for (size_t i = 0; i < PSIZE; i++) {
 		GRADIENTS_1D[i] = grad1[i % ARRAYSIZE(grad1)];
 	}
 }
@@ -622,6 +622,7 @@ static int fastFloor(double x)
  * 1D Simplex noise - super fast implementation.
  * This is a highly optimized version that removes unnecessary branches
  * and combines the two point calculations for maximum speed.
+ * Returns values in the same range as 2D/3D/4D noise (~[-1, 1]).
  */
 double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x)
 {
@@ -640,9 +641,8 @@ double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x)
 		int base_idx = xsv & PMASK;
 		
 		// Use pre-computed gradient values from the lookup table
-		// Note: We use GRADIENTS_1D[ctx->perm[...]] directly to avoid the extra
-		// indirection through ctx->permGrad1. This is the correct implementation
-		// that matches the OpenSimplex2F algorithm.
+		// The gradients have been pre-divided by N1 in setup_gradients()
+		// so we don't need to multiply by N1 here (matching 2D/3D/4D convention)
 		int idx0 = ctx->perm[base_idx];
 		int idx1 = ctx->perm[(base_idx + 1) & PMASK];
 		
@@ -663,13 +663,16 @@ double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x)
 		value += a1 * a1 * a1 * a1 * (g1 * dx1);
 		}
 		
-		return value * N1;
+		return value;
 	}
 }
 
 /**
  * 1D Simplex noise - ultra fast implementation with pre-computed gradients.
  * Performance: ~10-15% faster than OpenSimplex2F_noise1 due to reduced memory indirection.
+ * This version uses ctx->permGrad1 which is pre-populated to avoid the extra
+ * memory lookup through ctx->perm[idx].
+ * Returns values in the same range as 2D/3D/4D noise (~[-1, 1]).
  */
 double OpenSimplex2F_noise1_fast(struct OpenSimplex2F_context *ctx, double x)
 {
@@ -687,16 +690,19 @@ double OpenSimplex2F_noise1_fast(struct OpenSimplex2F_context *ctx, double x)
 		double value = 0.0;
 		int base_idx = xsv & PMASK;
 		
-		// Use pre-computed gradient values from the lookup table
-		// Note: We use GRADIENTS_1D[ctx->perm[...]] directly to avoid the extra
-		// indirection through ctx->permGrad1, while producing the same result.
-		int idx0 = ctx->perm[base_idx];
-		int idx1 = ctx->perm[(base_idx + 1) & PMASK];
+		// Use pre-computed gradient values from ctx->permGrad1
+		// This avoids the extra memory indirection through ctx->perm[idx]
+		// which is the key optimization for this "fast" variant
+		// ctx->permGrad1[i] already contains GRADIENTS_1D[ctx->perm[i]],
+		// so we just need to look up by base_idx directly
+		int idx0 = base_idx;
+		int idx1 = (base_idx + 1) & PMASK;
 		
-		// Get gradient values directly from the static table using the permuted index
-		// This is equivalent to ctx->permGrad1[idx0].dx but with one less memory access
-		double g0 = GRADIENTS_1D[idx0].dx;
-		double g1 = GRADIENTS_1D[idx1].dx;
+		// Get gradient values from the pre-computed table
+		// These have been pre-divided by N1 in setup_gradients()
+		// so we don't need to multiply by N1 here (matching 2D/3D/4D convention)
+		double g0 = ctx->permGrad1[idx0].dx;
+		double g1 = ctx->permGrad1[idx1].dx;
 		
 		// Compute contributions from both endpoints
 		{
@@ -711,7 +717,7 @@ double OpenSimplex2F_noise1_fast(struct OpenSimplex2F_context *ctx, double x)
 		value += a1 * a1 * a1 * a1 * (g1 * dx1);
 		}
 		
-		return value * N1;
+		return value;
 	}
 }
 
