@@ -652,21 +652,21 @@ int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx)
 		return -1;
 	}
 
-	for (i = 0; i < PSIZE; i++)
+	for (size_t i = 0; i < PSIZE; i++)
 		source[i] = (int16_t) i;
 
-	for (int i = PSIZE - 1; i >= 0; i--) {
+	for (size_t i = 0; i < PSIZE; i++) {
 		seed = (uint64_t) seed * (uint64_t) 6364136223846793005LL + (uint64_t) 1442695040888963407LL;
 		int r = (int)((seed + 31) % (i + 1));
 		if (r < 0)
-			r += (i + 1);
-		c->perm[i] = source[r];
-		c->permGrad1[i] = GRADIENTS_1D[c->perm[i]];
-		c->permGrad2[i] = GRADIENTS_2D[c->perm[i]];
-		c->permGrad3[i] = GRADIENTS_3D[c->perm[i]];
-		c->permGrad4[i] = GRADIENTS_4D[c->perm[i]];
-		c->permGrad5[i] = GRADIENTS_5D[c->perm[i]];
-		source[r] = source[i];
+			r += (int)(i + 1);
+		c->perm[PSIZE - 1 - i] = source[r];
+		c->permGrad1[PSIZE - 1 - i] = GRADIENTS_1D[c->perm[PSIZE - 1 - i]];
+		c->permGrad2[PSIZE - 1 - i] = GRADIENTS_2D[c->perm[PSIZE - 1 - i]];
+		c->permGrad3[PSIZE - 1 - i] = GRADIENTS_3D[c->perm[PSIZE - 1 - i]];
+		c->permGrad4[PSIZE - 1 - i] = GRADIENTS_4D[c->perm[PSIZE - 1 - i]];
+		c->permGrad5[PSIZE - 1 - i] = GRADIENTS_5D[c->perm[PSIZE - 1 - i]];
+		source[r] = source[PSIZE - 1 - i];
 	}
 	free(source);
 	return 0;
@@ -693,9 +693,9 @@ double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x)
 	// For 1D, we only have two points: origin and one point at distance 1
 	// The simplex is just a line segment from (0,0) to (1,1) in 1D
 	//
-	// Since xsi is always in [0, 1), the distance to each point is <= 0.5,
-	// meaning attn = 0.5 - dx*dx is always >= 0.25 > 0
-	// Therefore, we can skip the branch check and always compute both points.
+	// We compute the attenuation for both endpoints.
+	// The attenuation can be negative for the far endpoint when xsi < 0.293,
+	// so we must clamp it to 0.
 	{
 		double value = 0.0;
 		int base_idx = xsv & PMASK;
@@ -716,7 +716,9 @@ double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x)
 		double dx1 = xsi - 1.0;
 		
 		double a0 = 0.5 - dx0 * dx0;
+		if (a0 <= 0.0) a0 = 0.0;
 		double a1 = 0.5 - dx1 * dx1;
+		if (a1 <= 0.0) a1 = 0.0;
 		
 		// Evaluate both endpoints
 		value += a0 * a0 * a0 * a0 * (g0 * dx0);
@@ -743,9 +745,9 @@ double OpenSimplex2F_noise1_fast(struct OpenSimplex2F_context *ctx, double x)
 	// For 1D, we only have two points: origin and one point at distance 1
 	// The simplex is just a line segment from (0,0) to (1,1) in 1D
 	//
-	// Since xsi is always in [0, 1), the distance to each point is <= 0.5,
-	// meaning attn = 0.5 - dx*dx is always >= 0.25 > 0
-	// Therefore, we can skip the branch check and always compute both points.
+	// We compute the attenuation for both endpoints.
+	// The attenuation can be negative for the far endpoint when xsi < 0.293,
+	// so we must clamp it to 0.
 	{
 		double value = 0.0;
 		int base_idx = xsv & PMASK;
@@ -770,7 +772,9 @@ double OpenSimplex2F_noise1_fast(struct OpenSimplex2F_context *ctx, double x)
 		double dx1 = xsi - 1.0;
 		
 		double a0 = 0.5 - dx0 * dx0;
+		if (a0 <= 0.0) a0 = 0.0;
 		double a1 = 0.5 - dx1 * dx1;
+		if (a1 <= 0.0) a1 = 0.0;
 		
 		// Evaluate both endpoints
 		value += a0 * a0 * a0 * a0 * (g0 * dx0);
