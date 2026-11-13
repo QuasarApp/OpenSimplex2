@@ -45,6 +45,13 @@ struct Grad4 {
 	double dx, dy, dz, dw;
 };
 
+struct LatticePoint5D {
+	int xsv, ysv, zsv, wsv, vsv;
+	double dx, dy, dz, dw, dv;
+	double xsi, ysi, zsi, wsi, vsvi;
+	double ssiDelta;
+};
+
 struct Grad5 {
 	double dx, dy, dz, dw, dv;
 };

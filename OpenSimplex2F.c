@@ -141,6 +141,8 @@ struct LatticePoint4D {
 struct LatticePoint5D {
 	int xsv, ysv, zsv, wsv, vsv;
 	double dx, dy, dz, dw, dv;
+	double xsi, ysi, zsi, wsi, vsvi;
+	double ssiDelta;
 };
 
 static struct LatticePoint4D *new_LatticePoint4D(int xsv, int ysv, int zsv, int wsv)
@@ -172,6 +174,12 @@ static struct LatticePoint5D *new_LatticePoint5D(int xsv, int ysv, int zsv, int 
 	this->dz = -zsv - ssv;
 	this->dw = -wsv - ssv;
 	this->dv = -vsv - ssv;
+	this->xsi = 0.2 - xsv;
+	this->ysi = 0.2 - ysv;
+	this->zsi = 0.2 - zsv;
+	this->wsi = 0.2 - wsv;
+	this->vsvi = 0.2 - vsv;
+	this->ssiDelta = (0.8 - xsv - ysv - zsv - wsv - vsv) * -0.211324865405187;
 	return this;
 }
 
@@ -194,6 +202,7 @@ static struct Grad1 GRADIENTS_1D[PSIZE];
 static struct LatticePoint2D *LOOKUP_2D[4];
 static struct LatticePoint3D *LOOKUP_3D[8];
 static struct LatticePoint4D *VERTICES_4D[16];
+static struct LatticePoint5D *VERTICES_5D[32];
 
 static struct Grad2 grad2[] = {
 	{ 0.130526192220052,  0.99144486137381},
@@ -564,6 +573,10 @@ static void setup_lattice_points(void)
 	for (i = 0; i < 16; i++) {
 		VERTICES_4D[i] = new_LatticePoint4D((i >> 0) & 1, (i >> 1) & 1, (i >> 2) & 1, (i >> 3) & 1);
 	}
+
+	for (i = 0; i < 32; i++) {
+		VERTICES_5D[i] = new_LatticePoint5D((i >> 0) & 1, (i >> 1) & 1, (i >> 2) & 1, (i >> 3) & 1, (i >> 4) & 1);
+	}
 }
 
 /* Free up all the LatticePoint stuff allocated in setup_lattice_points() */
@@ -598,6 +611,13 @@ void OpenSimplex2F_shutdown(void)
 		if (VERTICES_4D[i]) {
 			free(VERTICES_4D[i]);
 			VERTICES_4D[i] = NULL;
+		}
+	}
+
+	for (i = 0; (size_t) i < ARRAYSIZE(VERTICES_5D); i++) {
+		if (VERTICES_5D[i]) {
+			free(VERTICES_5D[i]);
+			VERTICES_5D[i] = NULL;
 		}
 	}
 }
@@ -1173,12 +1193,10 @@ static double noise5_Base(struct OpenSimplex2F_context *ctx, double xs, double y
 	// Five points to add from five copies of the lattice
 	for (int i = 0; i < 5; i++) {
 		// Update xsb/etc. and add the lattice point's contribution
-		struct Grad5 grad = GRADIENTS_5D[vertexIndex];
-		// Create lattice point offsets from the gradient
-		double xsi_offset = grad.dx, ysi_offset = grad.dy, zsi_offset = grad.dz, wsi_offset = grad.dw, vsvi_offset = grad.dv;
-		xsb += (int)xsi_offset; ysb += (int)ysi_offset; zsb += (int)zsi_offset; wsb += (int)wsi_offset; vsv += (int)vsvi_offset;
-		double xi = xsi + ssi, yi = ysi + ssi, zi = zsi + ssi, wi = wsi + ssi, vvi = vsvi + ssi;
-		double dx = xi + xsi_offset, dy = yi + ysi_offset, dz = zi + zsi_offset, dw = wi + wsi_offset, dv = vvi + vsvi_offset;
+		struct LatticePoint5D c = *VERTICES_5D[vertexIndex];
+		xsb += c.xsv; ysb += c.ysv; zsb += c.zsv; wsb += c.wsv; vsv += c.vsv;
+		double xi = xsi + ssi, yi = ysi + ssi, zi = zsi + ssi, wi = wsi + ssi, vi = vsvi + ssi;
+		double dx = xi + c.dx, dy = yi + c.dy, dz = zi + c.dz, dw = wi + c.dw, dv = vi + c.dv;
 		double attn = 0.5 - dx * dx - dy * dy - dz * dz - dw * dw - dv * dv;
 		if (attn > 0) {
 			int pxm = xsb & PMASK, pym = ysb & PMASK, pzm = zsb & PMASK, pwm = wsb & PMASK, pv = vsv & PMASK;
@@ -1191,6 +1209,31 @@ static double noise5_Base(struct OpenSimplex2F_context *ctx, double xs, double y
 
 		// Maybe this helps the compiler/JVM/LLVM/etc. know we can end the loop here. Maybe not.
 		if (i == 4) break;
+
+		// Update the relative skewed coordinates to reference the vertex we just added.
+		// Rather, reference its counterpart on the lattice copy that is shifted down by
+		// the vector <-0.2, -0.2, -0.2, -0.2, -0.2>
+		xsi += c.xsi; ysi += c.ysi; zsi += c.zsi; wsi += c.wsi; vsvi += c.vsvi;
+		ssi += c.ssiDelta;
+
+		// Next point is the closest vertex on the 5-simplex whose base vertex is the aforementioned vertex.
+		double score0 = 1.0 + ssi * (-1.0 / 0.20135792079053765); // 5D equivalent of 4D score calculation
+		vertexIndex = 0;
+		if (xsi >= ysi && xsi >= zsi && xsi >= wsi && xsi >= vsvi && xsi >= score0) {
+			vertexIndex = 1;
+		}
+		else if (ysi > xsi && ysi >= zsi && ysi >= wsi && ysi >= vsvi && ysi >= score0) {
+			vertexIndex = 2;
+		}
+		else if (zsi > xsi && zsi > ysi && zsi >= wsi && zsi >= vsvi && zsi >= score0) {
+			vertexIndex = 4;
+		}
+		else if (wsi > xsi && wsi > ysi && wsi > zsi && wsi >= vsvi && wsi >= score0) {
+			vertexIndex = 8;
+		}
+		else if (vsvi > xsi && vsvi > ysi && vsvi > zsi && vsvi > wsi && vsvi >= score0) {
+			vertexIndex = 16;
+		}
 	}
 
 	// Flip back if we're actually in the lower half
