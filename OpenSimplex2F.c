@@ -642,7 +642,7 @@ void OpenSimplex2F_free(struct OpenSimplex2F_context *ctx)
 int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx)
 {
 	struct OpenSimplex2F_context *c;
-	int i, *source;
+	int *source;
 
 	setup_gradients();
 	setup_lattice_points();
