@@ -4,5 +4,6 @@ var structOpenSimplex2F__context =
     [ "permGrad1", "structOpenSimplex2F__context.html#a1ce4e59c4f1170deba243060af3d3177", null ],
     [ "permGrad2", "structOpenSimplex2F__context.html#a5874d43dcd2e8462cccf3c945210383f", null ],
     [ "permGrad3", "structOpenSimplex2F__context.html#aa26388ed3d42dc237a4831c6a37dd3a4", null ],
-    [ "permGrad4", "structOpenSimplex2F__context.html#a9e63c6d2528f017f09ae5bb655fe2e6b", null ]
+    [ "permGrad4", "structOpenSimplex2F__context.html#a9e63c6d2528f017f09ae5bb655fe2e6b", null ],
+    [ "permGrad5", "structOpenSimplex2F__context.html#aba39d7a6ce9b0498919106d9ff675c33", null ]
 ];
