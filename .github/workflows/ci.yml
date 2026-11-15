@@ -4,6 +4,9 @@
 
 name: Build and Test
 
+permissions:
+  contents: read
+
 # Builds the OpenSimplex2 CMake project and runs its tests via CTest.
 # `enable_testing()` creates the `test` build target which executes all
 # tests registered with add_test() in tests/CMakeLists.txt (see
