@@ -28,7 +28,7 @@
 
 #define PSIZE (2048)
 #define PMASK (2047)
-static const double N1 = 0.040534545116540165;
+static const double N1 = 0.009202377986303158;
 static const double N2 = 0.01001634121365712;
 static const double N3 = 0.030485933181293584;
 static const double N4 = 0.009202377986303158;
@@ -697,16 +697,13 @@ double OpenSimplex2F_noise1_fast(struct OpenSimplex2F_context *ctx, double x)
 		// Use pre-computed gradient values from ctx->permGrad1
 		// This avoids the extra memory indirection through ctx->perm[idx]
 		// which is the key optimization for this "fast" variant
-		// ctx->permGrad1[i] already contains GRADIENTS_1D[ctx->perm[i]],
-		// so we need to look up using the permuted index
-		int idx0 = ctx->perm[base_idx];
-		int idx1 = ctx->perm[(base_idx + 1) & PMASK];
-		
+		// ctx->permGrad1[i] already contains GRADIENTS_1D[ctx->perm[i]]
+		// so we look up using base_idx directly
 		// Get gradient values from the pre-computed table
 		// These have been pre-divided by N1 in setup_gradients()
 		// so we don't need to multiply by N1 here (matching 2D/3D/4D convention)
-		double g0 = ctx->permGrad1[idx0].dx;
-		double g1 = ctx->permGrad1[idx1].dx;
+		double g0 = ctx->permGrad1[base_idx].dx;
+		double g1 = ctx->permGrad1[(base_idx + 1) & PMASK].dx;
 		
 		// Compute contributions from both endpoints
 		{

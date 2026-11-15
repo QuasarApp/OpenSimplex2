@@ -9,8 +9,8 @@
 #include "OpenSimplex2F.h"
 
 #define NOISE_EPSILON 1e-6
-#define RANGE_MIN -1.5
-#define RANGE_MAX 1.5
+#define RANGE_MIN -1.2
+#define RANGE_MAX 1.2
 
 int main(void)
 {
