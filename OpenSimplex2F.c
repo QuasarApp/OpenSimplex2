@@ -50,6 +50,40 @@ static const double N4 = 0.009202377986303158;
 #define B1110 0x0e
 #define B1111 0x0f
 
+/* 5D bit constants for the A5 lattice */
+#define B00000 0x00
+#define B00001 0x01
+#define B00010 0x02
+#define B00011 0x03
+#define B00100 0x04
+#define B00101 0x05
+#define B00110 0x06
+#define B00111 0x07
+#define B01000 0x08
+#define B01001 0x09
+#define B01010 0x0a
+#define B01011 0x0b
+#define B01100 0x0c
+#define B01101 0x0d
+#define B01110 0x0e
+#define B01111 0x0f
+#define B10000 0x10
+#define B10001 0x11
+#define B10010 0x12
+#define B10011 0x13
+#define B10100 0x14
+#define B10101 0x15
+#define B10110 0x16
+#define B10111 0x17
+#define B11000 0x18
+#define B11001 0x19
+#define B11010 0x1a
+#define B11011 0x1b
+#define B11100 0x1c
+#define B11101 0x1d
+#define B11110 0x1e
+#define B11111 0x1f
+
 struct Grad1 {
 	double dx;
 };
@@ -1166,3 +1200,177 @@ double OpenSimplex2F_noise4_XYZBeforeW(struct OpenSimplex2F_context *ctx, double
 	return noise4_Base(ctx, xs, ys, zs, ws);
 }
 
+
+/**
+ * 5D OpenSimplex2F noise base.
+ * Implements the A5 lattice (5D version of the 4D A4 lattice).
+ * The A5 lattice is constructed as a union of six copies of its dual lattice.
+ */
+static double noise5_Base(struct OpenSimplex2F_context *ctx, double xs, double ys, double zs, double ws, double vs)
+{
+	double value = 0;
+
+	// Get base points and offsets
+	int xsb = fastFloor(xs), ysb = fastFloor(ys), zsb = fastFloor(zs), wsb = fastFloor(ws), vsv = fastFloor(vs);
+	double xsi = xs - xsb, ysi = ys - ysb, zsi = zs - zsb, wsi = ws - wsb, vsvi = vs - vsv;
+
+	// If we're in the lower half, flip so we can repeat the code for the upper half.
+	// For 5D, the "lower half" is when the sum of fractional parts is less than 2.5
+	double siSum = xsi + ysi + zsi + wsi + vsvi;
+	double ssi = siSum * 0.309016994374947; // Prep for vertex contributions.
+	bool inLowerHalf = (siSum < 2.5);
+	if (inLowerHalf) {
+		xsi = 1 - xsi; ysi = 1 - ysi; zsi = 1 - zsi; wsi = 1 - wsi; vsvi = 1 - vsvi;
+		siSum = 5 - siSum;
+	}
+
+	// Consider opposing vertex pairs of the polytope formed by the central cross-section
+	// of the stretched 5-cube. We use a simplified approach similar to 4D.
+	// The key insight is to find the closest point on the A5 lattice.
+	
+	// For 5D, we need to consider 5D generalizations of the 4D vertex selection.
+	// We compute scores for different vertex combinations.
+	
+	int vertexIndex, via, vib;
+	double asi, bsi, csi;
+	
+	// Calculate the basic scores for vertex selection
+	// This is a simplified version that follows the 4D pattern
+	double aabb = xsi + ysi - zsi - wsi - vsvi;
+	double abab = xsi - ysi + zsi - wsi - vsvi;
+	double abba = xsi - ysi - zsi + wsi - vsvi;
+	double acab = xsi + ysi + zsi - wsi - vsvi;
+	double acba = xsi + ysi - zsi + wsi - vsvi;
+	
+	double aabbScore = fabs(aabb), ababScore = fabs(abab), abbaScore = fabs(abba);
+	double acabScore = fabs(acab), acbaScore = fabs(acba);
+	
+	// Find the closest point on the stretched 5-cube
+	if (aabbScore > ababScore && aabbScore > abbaScore && aabbScore > acabScore && aabbScore > acbaScore) {
+		if (aabb > 0) {
+			asi = zsi; bsi = wsi; csi = vsvi; vertexIndex = B00011; via = B00111; vib = B01111;
+		} else {
+			asi = xsi; bsi = ysi; csi = vsvi; vertexIndex = B01100; via = B01101; vib = B01110;
+		}
+	} else if (ababScore > abbaScore && ababScore > acabScore && ababScore > acbaScore) {
+		if (abab > 0) {
+			asi = ysi; bsi = wsi; csi = vsvi; vertexIndex = B00101; via = B00111; vib = B01101;
+		} else {
+			asi = xsi; bsi = zsi; csi = vsvi; vertexIndex = B01010; via = B01011; vib = B01110;
+		}
+	} else if (abbaScore > acabScore && abbaScore > acbaScore) {
+		if (abba > 0) {
+			asi = ysi; bsi = zsi; csi = vsvi; vertexIndex = B00101; via = B00111; vib = B01101;
+		} else {
+			asi = xsi; bsi = wsi; csi = vsvi; vertexIndex = B00110; via = B00111; vib = B01110;
+		}
+	} else if (acabScore > acbaScore) {
+		if (acab > 0) {
+			asi = ysi; bsi = zsi; csi = vsvi; vertexIndex = B01001; via = B01011; vib = B01101;
+		} else {
+			asi = xsi; bsi = wsi; csi = vsvi; vertexIndex = B01100; via = B01101; vib = B01110;
+		}
+	} else {
+		if (acba > 0) {
+			asi = ysi; bsi = zsi; csi = vsvi; vertexIndex = B01001; via = B01011; vib = B01101;
+		} else {
+			asi = xsi; bsi = wsi; csi = vsvi; vertexIndex = B00110; via = B00111; vib = B01110;
+		}
+	}
+
+	// Ensure asi <= bsi <= csi for proper ordering
+	if (bsi > asi) {
+		via = vib;
+		double temp = bsi;
+		bsi = asi;
+		asi = temp;
+	}
+	if (csi > bsi) {
+		via = vib;
+		double temp = csi;
+		csi = bsi;
+		bsi = temp;
+	}
+	if (csi > asi) {
+		via = vib;
+		double temp = csi;
+		csi = asi;
+		asi = temp;
+	}
+
+	// Additional vertex selection based on sum
+	if (siSum + asi > 4) {
+		vertexIndex = via;
+		if (siSum + bsi > 5) {
+			vertexIndex = B11111;
+		} else if (siSum + csi > 5) {
+			vertexIndex = via ^ (1 << 2);
+		}
+	}
+
+	// Now flip back if we're actually in the lower half.
+	if (inLowerHalf) {
+		xsi = 1 - xsi; ysi = 1 - ysi; zsi = 1 - zsi; wsi = 1 - wsi; vsvi = 1 - vsvi;
+		vertexIndex ^= B11111;
+	}
+
+	// Process up to 6 vertices from six copies of the A5 lattice.
+	for (int i = 0; i < 6; i++) {
+
+		// Update xsb/etc. and add the lattice point's contribution.
+		struct LatticePoint5D c = *(VERTICES_5D[vertexIndex]);
+		xsb += c.xsv; ysb += c.ysv; zsb += c.zsv; wsb += c.wsv; vsv += c.vsv;
+		double xi = xsi + ssi, yi = ysi + ssi, zi = zsi + ssi, wi = wsi + ssi, vi = vsvi + ssi;
+		double dx = xi + c.dx, dy = yi + c.dy, dz = zi + c.dz, dw = wi + c.dw, dv = vi + c.dv;
+		double attn = 0.5 - dx * dx - dy * dy - dz * dz - dw * dw - dv * dv;
+		if (attn > 0) {
+			int pxm = xsb & PMASK, pym = ysb & PMASK, pzm = zsb & PMASK, pwm = wsb & PMASK, pvsm = vsv & PMASK;
+			struct Grad5 grad = ctx->permGrad5[ctx->perm[ctx->perm[ctx->perm[ctx->perm[ctx->perm[pxm] ^ pym] ^ pzm] ^ pwm] ^ pvsm]];
+			double ramped = grad.dx * dx + grad.dy * dy + grad.dz * dz + grad.dw * dw + grad.dv * dv;
+
+			attn *= attn;
+			value += attn * attn * ramped;
+		}
+
+		// Maybe this helps the compiler/JVM/LLVM/etc. know we can end the loop here. Maybe not.
+		if (i == 5) break;
+
+		// Update the relative skewed coordinates to reference the vertex we just added.
+		xsi += c.xsi; ysi += c.ysi; zsi += c.zsi; wsi += c.wsi; vsvi += c.vsvi;
+		ssi += c.ssiDelta;
+
+		// Next point is the closest vertex on the 5-simplex whose base vertex is the aforementioned vertex.
+		// For 5D, we select from 5 vertices (similar to how 4D selects from 4)
+		double score0 = 1.0 + ssi * (-1.0 / 0.309016994374947);
+		vertexIndex = B00000;
+		if (xsi >= ysi && xsi >= zsi && xsi >= wsi && xsi >= vsvi && xsi >= score0) {
+			vertexIndex = B00001;
+		}
+		else if (ysi > xsi && ysi >= zsi && ysi >= wsi && ysi >= vsvi && ysi >= score0) {
+			vertexIndex = B00010;
+		}
+		else if (zsi > xsi && zsi > ysi && zsi >= wsi && zsi >= vsvi && zsi >= score0) {
+			vertexIndex = B00100;
+		}
+		else if (wsi > xsi && wsi > ysi && wsi > zsi && wsi >= vsvi && wsi >= score0) {
+			vertexIndex = B01000;
+		}
+		else if (vsvi > xsi && vsvi > ysi && vsvi > zsi && vsvi > wsi && vsvi >= score0) {
+			vertexIndex = B10000;
+		}
+	}
+
+	return value;
+}
+
+/**
+ * 5D OpenSimplex2F noise, classic lattice orientation.
+ */
+double OpenSimplex2F_noise5(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v)
+{
+	// Get points for A5 lattice
+	double s = -0.07460158960563105 * (x + y + z + w + v);
+	double xs = x + s, ys = y + s, zs = z + s, ws = w + s, vs = v + s;
+
+	return noise5_Base(ctx, xs, ys, zs, ws, vs);
+}
