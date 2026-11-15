@@ -26,7 +26,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">OpenSimplex2<span id="projectnumber">&#160;1.0.176.76b4bf9</span>
+   <div id="projectname">OpenSimplex2<span id="projectnumber">&#160;1.0.178.e246357</span>
    </div>
    <div id="projectbrief">The most fast implementation of the OpenSimplex noise (2D, 3D and 4D) in C</div>
   </td>
@@ -158,6 +158,8 @@ Functions</h2></td></tr>
 <tr class="memdesc:adb39faa67b72e2f5719a017afd875d3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">4D OpenSimplex2F noise, with XZ and YW forming orthogonal triangular-based planes.  <br /></td></tr>
 <tr class="memitem:a6bf0b31c4e94be30a45b8c9a1b5c43d1" id="r_a6bf0b31c4e94be30a45b8c9a1b5c43d1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a6bf0b31c4e94be30a45b8c9a1b5c43d1">OpenSimplex2F_noise4_XYZBeforeW</a> (struct <a class="el" href="structOpenSimplex2F__context.html">OpenSimplex2F_context</a> *ctx, double x, double y, double z, double w)</td></tr>
 <tr class="memdesc:a6bf0b31c4e94be30a45b8c9a1b5c43d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">4D OpenSimplex2F noise, with XYZ oriented like noise3_Classic, and W for an extra degree of freedom.  <br /></td></tr>
+<tr class="memitem:aaa0ef53318eff1fdbf1c33d0ce2ae4e9" id="r_aaa0ef53318eff1fdbf1c33d0ce2ae4e9"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aaa0ef53318eff1fdbf1c33d0ce2ae4e9">OpenSimplex2F_noise5</a> (struct <a class="el" href="structOpenSimplex2F__context.html">OpenSimplex2F_context</a> *ctx, double x, double y, double z, double w, double v)</td></tr>
+<tr class="memdesc:aaa0ef53318eff1fdbf1c33d0ce2ae4e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">5D OpenSimplex2F noise, classic lattice orientation.  <br /></td></tr>
 </table>
 <a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
 <a id="a2eb6f9e0395b47b8d5e3eeae4fe0c116" name="a2eb6f9e0395b47b8d5e3eeae4fe0c116"></a>
@@ -820,6 +822,67 @@ Here is the caller graph for this function:</div>
 <map name="aOpenSimplex2F_8h_adb39faa67b72e2f5719a017afd875d3e_icgraph" id="aOpenSimplex2F_8h_adb39faa67b72e2f5719a017afd875d3e_icgraph">
 <area shape="rect" title="4D OpenSimplex2F noise, with XZ and YW forming orthogonal triangular&#45;based planes." alt="" coords="5,29,180,74"/>
 <area shape="poly" title=" " alt="" coords="119,14,110,10,92,8,77,10,67,14,63,21,64,30,59,28,58,19,63,10,75,5,93,3,111,5,124,14"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aaa0ef53318eff1fdbf1c33d0ce2ae4e9" name="aaa0ef53318eff1fdbf1c33d0ce2ae4e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa0ef53318eff1fdbf1c33d0ce2ae4e9">&#9670;&#160;</a></span>OpenSimplex2F_noise5()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double OpenSimplex2F_noise5 </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structOpenSimplex2F__context.html">OpenSimplex2F_context</a> *</td>          <td class="paramname"><span class="paramname"><em>ctx</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>y</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>z</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>w</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>v</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>5D OpenSimplex2F noise, classic lattice orientation. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="OpenSimplex2F_8h_aaa0ef53318eff1fdbf1c33d0ce2ae4e9_cgraph.png" border="0" usemap="#aOpenSimplex2F_8h_aaa0ef53318eff1fdbf1c33d0ce2ae4e9_cgraph" loading="lazy" alt=""/></div>
+<map name="aOpenSimplex2F_8h_aaa0ef53318eff1fdbf1c33d0ce2ae4e9_cgraph" id="aOpenSimplex2F_8h_aaa0ef53318eff1fdbf1c33d0ce2ae4e9_cgraph">
+<area shape="rect" title="5D OpenSimplex2F noise, classic lattice orientation." alt="" coords="5,29,180,57"/>
+<area shape="poly" title=" " alt="" coords="62,28,57,20,61,11,73,5,93,3,113,5,126,14,121,14,112,10,92,8,75,10,65,15,63,20,67,29"/>
+</map>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="OpenSimplex2F_8h_aaa0ef53318eff1fdbf1c33d0ce2ae4e9_icgraph.png" border="0" usemap="#aOpenSimplex2F_8h_aaa0ef53318eff1fdbf1c33d0ce2ae4e9_icgraph" loading="lazy" alt=""/></div>
+<map name="aOpenSimplex2F_8h_aaa0ef53318eff1fdbf1c33d0ce2ae4e9_icgraph" id="aOpenSimplex2F_8h_aaa0ef53318eff1fdbf1c33d0ce2ae4e9_icgraph">
+<area shape="rect" title="5D OpenSimplex2F noise, classic lattice orientation." alt="" coords="5,29,180,57"/>
+<area shape="poly" title=" " alt="" coords="121,14,112,10,92,8,75,10,65,15,63,20,67,29,62,28,57,20,61,11,73,5,93,3,113,5,126,14"/>
 </map>
 </div>
 

@@ -14,5 +14,6 @@ var OpenSimplex2F_8h =
     [ "OpenSimplex2F_noise4_XYBeforeZW", "OpenSimplex2F_8h.html#a17de4977022fa782eb7c48c282cf90d8", null ],
     [ "OpenSimplex2F_noise4_XYZBeforeW", "OpenSimplex2F_8h.html#a6bf0b31c4e94be30a45b8c9a1b5c43d1", null ],
     [ "OpenSimplex2F_noise4_XZBeforeYW", "OpenSimplex2F_8h.html#adb39faa67b72e2f5719a017afd875d3e", null ],
+    [ "OpenSimplex2F_noise5", "OpenSimplex2F_8h.html#aaa0ef53318eff1fdbf1c33d0ce2ae4e9", null ],
     [ "OpenSimplex2F_shutdown", "OpenSimplex2F_8h.html#ae27858ac2e0a39adf9abea55e625c90b", null ]
 ];
