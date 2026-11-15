@@ -12,7 +12,6 @@ find_package(PNG REQUIRED)
 
 set(SOURCE_C
     "${CMAKE_CURRENT_SOURCE_DIR}/test_OpenSimplex2F.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/test_1d_simple.c"
 )
 
 add_executable(${CURRENT_PROJECT} ${SOURCE_C})
@@ -34,6 +33,21 @@ foreach(test_name IN LISTS TEST_NAMES)
              COMMAND ${CURRENT_PROJECT} ${test_name}
              WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endforeach()
+
+# 1D noise test - separate executable to avoid multiple main() definitions
+set(SOURCE_1D_C
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_1d_simple.c"
+)
+
+add_executable(${PROJECT_NAME}_1d_simple ${SOURCE_1D_C})
+target_include_directories(${PROJECT_NAME}_1d_simple PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
+target_compile_options(${PROJECT_NAME}_1d_simple PRIVATE -Wall -Wextra --pedantic)
+target_link_libraries(${PROJECT_NAME}_1d_simple PRIVATE OpenSimplex2Interface m)
+
+# Register 1D test with CTest framework
+add_test(NAME test_1d_simple
+         COMMAND ${PROJECT_NAME}_1d_simple
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # Cross-platform noise benchmark (issue #31): evaluates every OpenSimplex2F
 # noise function with the same seed and the same input parameters on every
