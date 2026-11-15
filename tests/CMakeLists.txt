@@ -12,6 +12,7 @@ find_package(PNG REQUIRED)
 
 set(SOURCE_C
     "${CMAKE_CURRENT_SOURCE_DIR}/test_OpenSimplex2F.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_1d_simple.c"
 )
 
 add_executable(${CURRENT_PROJECT} ${SOURCE_C})
