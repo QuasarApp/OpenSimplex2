@@ -6,6 +6,10 @@ this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+### Added
+- `OpenSimplex2F_noise1()` / `OpenSimplex2F_noise1_fast()` 1D noise (issue #23)
+- CTest framework integration for tests (issue #38)
+- Cross-platform noise benchmark (issue #31)
 
 ## [1.0.0] - 2026-10-13
 
