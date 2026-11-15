@@ -66,6 +66,10 @@ struct Grad4 {
 	double dx, dy, dz, dw;
 };
 
+struct Grad5 {
+	double dx, dy, dz, dw, dv;
+};
+
 struct LatticePoint2D {
 	int xsv, ysv;
 	double dx, dy;
@@ -133,6 +137,13 @@ struct LatticePoint4D {
 	double ssiDelta;
 };
 
+struct LatticePoint5D {
+	int xsv, ysv, zsv, wsv, vsv;
+	double dx, dy, dz, dw, dv;
+	double xsi, ysi, zsi, wsi, vsvi;
+	double ssiDelta;
+};
+
 static struct LatticePoint4D *new_LatticePoint4D(int xsv, int ysv, int zsv, int wsv)
 {
 	struct LatticePoint4D *this = calloc(1, sizeof(*this));
@@ -151,12 +162,33 @@ static struct LatticePoint4D *new_LatticePoint4D(int xsv, int ysv, int zsv, int 
 	return this;
 }
 
+static struct LatticePoint5D *new_LatticePoint5D(int xsv, int ysv, int zsv, int wsv, int vsv)
+{
+	struct LatticePoint5D *this = calloc(1, sizeof(*this));
+
+	this->xsv = xsv + 817; this->ysv = ysv + 817; this->zsv = zsv + 817; this->wsv = wsv + 817; this->vsv = vsv + 817;
+	double ssv = (xsv + ysv + zsv + wsv + vsv) * 0.309016994374947;
+	this->dx = -xsv - ssv;
+	this->dy = -ysv - ssv;
+	this->dz = -zsv - ssv;
+	this->dw = -wsv - ssv;
+	this->dv = -vsv - ssv;
+	this->xsi = 0.2 - xsv;
+	this->ysi = 0.2 - ysv;
+	this->zsi = 0.2 - zsv;
+	this->wsi = 0.2 - wsv;
+	this->vsvi = 0.2 - vsv;
+	this->ssiDelta = (1.6 - xsv - ysv - zsv - wsv - vsv) * 0.309016994374947;
+	return this;
+}
+
 struct OpenSimplex2F_context {
 	struct Grad1 *permGrad1;
 	int16_t *perm;
 	struct Grad2 *permGrad2;
 	struct Grad3 *permGrad3;
 	struct Grad4 *permGrad4;
+	struct Grad5 *permGrad5;
 };
 
 #define ARRAYSIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -164,10 +196,12 @@ struct OpenSimplex2F_context {
 static struct Grad2 GRADIENTS_2D[PSIZE];
 static struct Grad3 GRADIENTS_3D[PSIZE];
 static struct Grad4 GRADIENTS_4D[PSIZE];
+static struct Grad5 GRADIENTS_5D[PSIZE];
 static struct Grad1 GRADIENTS_1D[PSIZE];
 static struct LatticePoint2D *LOOKUP_2D[4];
 static struct LatticePoint3D *LOOKUP_3D[8];
 static struct LatticePoint4D *VERTICES_4D[16];
+static struct LatticePoint5D *VERTICES_5D[32];
 
 static struct Grad2 grad2[] = {
 	{ 0.130526192220052,  0.99144486137381},
@@ -410,6 +444,41 @@ static struct Grad4 grad4[] = {
 	{ 0.753341017856078,     0.37968289875261624,   0.37968289875261624,   0.37968289875261624}
 };
 
+static struct Grad5 grad5[] = {
+	{ 1.0,  1.0,  1.0,  1.0,  1.0 },
+	{ 1.0,  1.0,  1.0,  1.0, -1.0 },
+	{ 1.0,  1.0,  1.0, -1.0,  1.0 },
+	{ 1.0,  1.0,  1.0, -1.0, -1.0 },
+	{ 1.0,  1.0, -1.0,  1.0,  1.0 },
+	{ 1.0,  1.0, -1.0,  1.0, -1.0 },
+	{ 1.0,  1.0, -1.0, -1.0,  1.0 },
+	{ 1.0,  1.0, -1.0, -1.0, -1.0 },
+	{ 1.0, -1.0,  1.0,  1.0,  1.0 },
+	{ 1.0, -1.0,  1.0,  1.0, -1.0 },
+	{ 1.0, -1.0,  1.0, -1.0,  1.0 },
+	{ 1.0, -1.0,  1.0, -1.0, -1.0 },
+	{ 1.0, -1.0, -1.0,  1.0,  1.0 },
+	{ 1.0, -1.0, -1.0,  1.0, -1.0 },
+	{ 1.0, -1.0, -1.0, -1.0,  1.0 },
+	{ 1.0, -1.0, -1.0, -1.0, -1.0 },
+	{-1.0,  1.0,  1.0,  1.0,  1.0 },
+	{-1.0,  1.0,  1.0,  1.0, -1.0 },
+	{-1.0,  1.0,  1.0, -1.0,  1.0 },
+	{-1.0,  1.0,  1.0, -1.0, -1.0 },
+	{-1.0,  1.0, -1.0,  1.0,  1.0 },
+	{-1.0,  1.0, -1.0,  1.0, -1.0 },
+	{-1.0,  1.0, -1.0, -1.0,  1.0 },
+	{-1.0,  1.0, -1.0, -1.0, -1.0 },
+	{-1.0, -1.0,  1.0,  1.0,  1.0 },
+	{-1.0, -1.0,  1.0,  1.0, -1.0 },
+	{-1.0, -1.0,  1.0, -1.0,  1.0 },
+	{-1.0, -1.0,  1.0, -1.0, -1.0 },
+	{-1.0, -1.0, -1.0,  1.0,  1.0 },
+	{-1.0, -1.0, -1.0,  1.0, -1.0 },
+	{-1.0, -1.0, -1.0, -1.0,  1.0 },
+	{-1.0, -1.0, -1.0, -1.0, -1.0 }
+};
+
 
 static void setup_gradients(void)
 {
@@ -439,6 +508,10 @@ static void setup_gradients(void)
 	}
 	for (i = 0; i < PSIZE; i++) {
 		GRADIENTS_4D[i] = grad4[i % ARRAYSIZE(grad4)];
+	}
+
+	for (int i = 0; i < PSIZE; i++) {
+		GRADIENTS_5D[i] = grad5[i % ARRAYSIZE(grad5)];
 	}
 
 	// 1D gradient table - just two directions
@@ -558,6 +631,8 @@ void OpenSimplex2F_free(struct OpenSimplex2F_context *ctx)
 		free(ctx->permGrad3);
 	if (ctx->permGrad4)
 		free(ctx->permGrad4);
+	if (ctx->permGrad5)
+		free(ctx->permGrad5);
 	free(ctx);
 }
 
@@ -585,8 +660,9 @@ int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx)
 	c->permGrad2 = calloc(1, sizeof(*c->permGrad2) * PSIZE);
 	c->permGrad3 = calloc(1, sizeof(*c->permGrad3) * PSIZE);
 	c->permGrad4 = calloc(1, sizeof(*c->permGrad4) * PSIZE);
+	c->permGrad5 = calloc(1, sizeof(*c->permGrad5) * PSIZE);
 
-	if (!c->permGrad1 || !c->perm || !c->permGrad2 || !c->permGrad3 || !c->permGrad4) {
+	if (!c->permGrad1 || !c->perm || !c->permGrad2 || !c->permGrad3 || !c->permGrad4 || !c->permGrad5) {
 		OpenSimplex2F_free(*ctx);
 		*ctx = NULL;
 		free(source);
@@ -606,6 +682,7 @@ int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx)
 		c->permGrad2[i] = GRADIENTS_2D[c->perm[i]];
 		c->permGrad3[i] = GRADIENTS_3D[c->perm[i]];
 		c->permGrad4[i] = GRADIENTS_4D[c->perm[i]];
+		c->permGrad5[i] = GRADIENTS_5D[c->perm[i]];
 		source[r] = source[i];
 	}
 	free(source);
