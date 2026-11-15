@@ -3,6 +3,7 @@
 # C build artifacts
 *.o
 test_OpenSimplex2F
+test_1d_simple
 test2d.png
 test3d.png
 test4d.png

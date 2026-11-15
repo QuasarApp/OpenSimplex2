@@ -19,8 +19,8 @@ OpenSimplex2F.o:	OpenSimplex2F.c OpenSimplex2F.h Makefile
 test_OpenSimplex2F:	tests/test_OpenSimplex2F.c OpenSimplex2F.o Makefile
 	$(CC) ${CFLAGS} -I. -o test_OpenSimplex2F tests/test_OpenSimplex2F.c OpenSimplex2F.o -lm -lpng
 
-test_1d_simple:	test_1d_simple.c OpenSimplex2F.o Makefile
-	$(CC) ${CFLAGS} -I. -o test_1d_simple test_1d_simple.c OpenSimplex2F.o -lm
+test_1d_simple:	tests/test_1d_simple.c OpenSimplex2F.o Makefile
+	$(CC) ${CFLAGS} -I. -o test_1d_simple tests/test_1d_simple.c OpenSimplex2F.o -lm
 
 clean:
 	rm -f *.o test_OpenSimplex2F test2d.png test3d.png test4d.png test_1d_simple
