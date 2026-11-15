@@ -41,6 +41,8 @@
 	extern "C" {
 #endif
 
+struct Grad5;
+struct LatticePoint5D;
 struct OpenSimplex2F_context;
 
 /* Allocate and initialize OpenSimplex2F context */
