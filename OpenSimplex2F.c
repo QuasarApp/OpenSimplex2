@@ -633,9 +633,9 @@ double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x)
 	// For 1D, we only have two points: origin and one point at distance 1
 	// The simplex is just a line segment from (0,0) to (1,1) in 1D
 	//
-	// Since xsi is always in [0, 1), the distance to each point is <= 0.5,
-	// meaning attn = 0.5 - dx*dx is always >= 0.25 > 0
-	// Therefore, we can skip the branch check and always compute both points.
+	// Note: xsi is in [0, 1), but distances to endpoints can exceed 0.5
+	// when xsi is close to 0 or 1, making a0/a1 potentially negative.
+	// We must clamp/protect these to avoid incorrect contributions.
 	{
 		double value = 0.0;
 		int base_idx = xsv & PMASK;
@@ -658,9 +658,13 @@ double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x)
 		double a0 = 0.5 - dx0 * dx0;
 		double a1 = 0.5 - dx1 * dx1;
 		
-		// Evaluate both endpoints
-		value += a0 * a0 * a0 * a0 * (g0 * dx0);
-		value += a1 * a1 * a1 * a1 * (g1 * dx1);
+		// Guard against negative/zero contributions (like 2D/3D/4D)
+		if (a0 > 0) {
+			value += a0 * a0 * a0 * a0 * (g0 * dx0);
+		}
+		if (a1 > 0) {
+			value += a1 * a1 * a1 * a1 * (g1 * dx1);
+		}
 		}
 		
 		return value;
@@ -683,9 +687,9 @@ double OpenSimplex2F_noise1_fast(struct OpenSimplex2F_context *ctx, double x)
 	// For 1D, we only have two points: origin and one point at distance 1
 	// The simplex is just a line segment from (0,0) to (1,1) in 1D
 	//
-	// Since xsi is always in [0, 1), the distance to each point is <= 0.5,
-	// meaning attn = 0.5 - dx*dx is always >= 0.25 > 0
-	// Therefore, we can skip the branch check and always compute both points.
+	// Note: xsi is in [0, 1), but distances to endpoints can exceed 0.5
+	// when xsi is close to 0 or 1, making a0/a1 potentially negative.
+	// We must clamp/protect these to avoid incorrect contributions.
 	{
 		double value = 0.0;
 		int base_idx = xsv & PMASK;
@@ -713,8 +717,14 @@ double OpenSimplex2F_noise1_fast(struct OpenSimplex2F_context *ctx, double x)
 		double a1 = 0.5 - dx1 * dx1;
 		
 		// Evaluate both endpoints
-		value += a0 * a0 * a0 * a0 * (g0 * dx0);
-		value += a1 * a1 * a1 * a1 * (g1 * dx1);
+		// Guard against negative/zero contributions (like 2D/3D/4D)
+		if (a0 > 0) {
+			value += a0 * a0 * a0 * a0 * (g0 * dx0);
+		}
+		if (a1 > 0) {
+			value += a1 * a1 * a1 * a1 * (g1 * dx1);
+		}
+
 		}
 		
 		return value;
