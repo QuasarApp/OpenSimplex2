@@ -1374,3 +1374,157 @@ double OpenSimplex2F_noise5(struct OpenSimplex2F_context *ctx, double x, double 
 
 	return noise5_Base(ctx, xs, ys, zs, ws, vs);
 }
+
+/**
+ * 5D OpenSimplex2F noise, with XY and ZW forming orthogonal triangular-based planes.
+ * Recommended for volumetric noise where X and Y (or Z and W) are horizontal.
+ * Similar to noise4_XYBeforeZW pattern.
+ */
+double OpenSimplex2F_noise5_XYBeforeZW(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v)
+{
+	// Re-orient the cubic lattices without skewing, to make X and Y triangular like 2D.
+	// Orthonormal rotation. Not a skew transform.
+	double xy = x + y;
+	double s2 = xy * -0.211324865405187;
+	double zw = z + w;
+	double s3 = zw * -0.211324865405187;
+	double xv = x + s2 + s3;
+	double yv = y + s2 + s3;
+	double zr = zw * 0.577350269189626;
+	double wr = zw * 0.577350269189626;
+	double vr = v * 0.577350269189626;
+
+	return noise5_Base(ctx, xv, yv, zr, wr, vr);
+}
+
+/**
+ * 5D OpenSimplex2F noise, with XZ and YW forming orthogonal triangular-based planes.
+ * Recommended for volumetric noise where X and Z (or Y and W) are horizontal.
+ */
+double OpenSimplex2F_noise5_XZBeforeYW(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v)
+{
+	// Re-orient the cubic lattices without skewing, to make X and Z triangular like 2D.
+	// Orthonormal rotation. Not a skew transform.
+	double xz = x + z;
+	double s2 = xz * -0.211324865405187;
+	double yw = y + w;
+	double s3 = yw * -0.211324865405187;
+	double xv = x + s2 + s3;
+	double zv = z + s2 + s3;
+	double yr = yw * 0.577350269189626;
+	double wr = yw * 0.577350269189626;
+	double vr = v * 0.577350269189626;
+
+	return noise5_Base(ctx, xv, yr, zv, wr, vr);
+}
+
+/**
+ * 5D OpenSimplex2F noise, with XYZ oriented like noise5, and W and V for extra dimensions.
+ * Recommended for time-varied animations which texture a 4D object (W=time, V=frame)
+ */
+double OpenSimplex2F_noise5_XYZBeforeWV(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v)
+{
+	// Use the same skew transform as classic noise5, but interpret the result differently.
+	// X, Y, Z are primary dimensions; W and V are additional dimensions.
+	double s = -0.07460158960563105 * (x + y + z + w + v);
+	double xs = x + s, ys = y + s, zs = z + s, ws = w + s, vs = v + s;
+
+	return noise5_Base(ctx, xs, ys, zs, ws, vs);
+}
+
+/**
+ * 5D OpenSimplex2F noise, with XY and V forming orthogonal triangular-based planes.
+ * Recommended for noise(x, y, sin(time), cos(time), T) trick where V is time.
+ */
+double OpenSimplex2F_noise5_XYBeforeZV(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v)
+{
+	// Re-orient the cubic lattices without skewing, to make X and Y triangular like 2D.
+	// Orthonormal rotation. Not a skew transform.
+	double xy = x + y;
+	double s2 = xy * -0.211324865405187;
+	double zv = z * 0.577350269189626;
+	double wv = w * 0.577350269189626;
+	double vv = v + s2;
+	double xv = x + s2;
+	double yv = y + s2;
+	double vr = vv * 0.577350269189626;
+
+	return noise5_Base(ctx, xv, yv, zv, wv, vr);
+}
+
+/**
+ * 5D OpenSimplex2F noise, with XZ and V forming orthogonal triangular-based planes.
+ */
+double OpenSimplex2F_noise5_XZBeforeYV(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v)
+{
+	// Re-orient the cubic lattices without skewing, to make X and Z triangular like 2D.
+	// Orthonormal rotation. Not a skew transform.
+	double xz = x + z;
+	double s2 = xz * -0.211324865405187;
+	double yr = y * 0.577350269189626;
+	double wv = w * 0.577350269189626;
+	double vv = v + s2;
+	double xv = x + s2;
+	double zv = z + s2;
+	double vr = vv * 0.577350269189626;
+
+	return noise5_Base(ctx, xv, yr, zv, wv, vr);
+}
+
+/**
+ * 5D OpenSimplex2F noise, with YZ and W forming orthogonal triangular-based planes.
+ */
+double OpenSimplex2F_noise5_YZBeforeXW(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v)
+{
+	// Re-orient the cubic lattices without skewing, to make Y and Z triangular like 2D.
+	// Orthonormal rotation. Not a skew transform.
+	double yz = y + z;
+	double s2 = yz * -0.211324865405187;
+	double xv = x * 0.577350269189626;
+	double yr = y + s2;
+	double zr = z + s2;
+	double wv = w + s2;
+	double wr = wv * 0.577350269189626;
+	double vr = v * 0.577350269189626;
+
+	return noise5_Base(ctx, xv, yr, zr, wr, vr);
+}
+
+/**
+ * 5D OpenSimplex2F noise, with YW and XZ forming orthogonal triangular-based planes.
+ */
+double OpenSimplex2F_noise5_YWBeforeXZV(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v)
+{
+	// Re-orient the cubic lattices without skewing, to make Y and W triangular like 2D.
+	// Orthonormal rotation. Not a skew transform.
+	double yw = y + w;
+	double s2 = yw * -0.211324865405187;
+	double xz = x + z;
+	double s3 = xz * -0.211324865405187;
+	double xv = x + s2 + s3;
+	double zv = z + s2 + s3;
+	double yr = y + s2;
+	double wr = w + s2;
+	double vr = v * 0.577350269189626;
+
+	return noise5_Base(ctx, xv, yr, zv, wr, vr);
+}
+
+/**
+ * 5D OpenSimplex2F noise, with ZW and V forming orthogonal triangular-based planes.
+ */
+double OpenSimplex2F_noise5_ZWBeforeXYV(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v)
+{
+	// Re-orient the cubic lattices without skewing, to make Z and W triangular like 2D.
+	// Orthonormal rotation. Not a skew transform.
+	double zw = z + w;
+	double s2 = zw * -0.211324865405187;
+	double xv = x * 0.577350269189626;
+	double yv = y * 0.577350269189626;
+	double zr = zw * 0.577350269189626;
+	double wr = zw * 0.577350269189626;
+	double vv = v + s2;
+	double vr = vv * 0.577350269189626;
+
+	return noise5_Base(ctx, xv, yv, zr, wr, vr);
+}

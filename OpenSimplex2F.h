@@ -138,6 +138,51 @@ double OpenSimplex2F_noise4_XYZBeforeW(struct OpenSimplex2F_context *ctx, double
  */
 double OpenSimplex2F_noise5(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
 
+/**
+ * 5D OpenSimplex2F noise, with XY and ZW forming orthogonal triangular-based planes.
+ * Recommended for volumetric noise where X and Y (or Z and W) are horizontal.
+ * Similar to noise4_XYBeforeZW pattern.
+ */
+double OpenSimplex2F_noise5_XYBeforeZW(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
+
+/**
+ * 5D OpenSimplex2F noise, with XZ and YW forming orthogonal triangular-based planes.
+ * Recommended for volumetric noise where X and Z (or Y and W) are horizontal.
+ */
+double OpenSimplex2F_noise5_XZBeforeYW(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
+
+/**
+ * 5D OpenSimplex2F noise, with XYZ oriented like noise5, and W and V for extra dimensions.
+ * Recommended for time-varied animations which texture a 4D object (W=time, V=frame)
+ */
+double OpenSimplex2F_noise5_XYZBeforeWV(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
+
+/**
+ * 5D OpenSimplex2F noise, with XY and V forming orthogonal triangular-based planes.
+ * Recommended for noise(x, y, sin(time), cos(time), T) trick where V is time.
+ */
+double OpenSimplex2F_noise5_XYBeforeZV(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
+
+/**
+ * 5D OpenSimplex2F noise, with XZ and V forming orthogonal triangular-based planes.
+ */
+double OpenSimplex2F_noise5_XZBeforeYV(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
+
+/**
+ * 5D OpenSimplex2F noise, with YZ and W forming orthogonal triangular-based planes.
+ */
+double OpenSimplex2F_noise5_YZBeforeXW(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
+
+/**
+ * 5D OpenSimplex2F noise, with YW and XZ forming orthogonal triangular-based planes.
+ */
+double OpenSimplex2F_noise5_YWBeforeXZV(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
+
+/**
+ * 5D OpenSimplex2F noise, with ZW and V forming orthogonal triangular-based planes.
+ */
+double OpenSimplex2F_noise5_ZWBeforeXYV(struct OpenSimplex2F_context *ctx, double x, double y, double z, double w, double v);
+
 #ifdef __cplusplus
 	}
 #endif
