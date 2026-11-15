@@ -698,9 +698,9 @@ double OpenSimplex2F_noise1_fast(struct OpenSimplex2F_context *ctx, double x)
 		// This avoids the extra memory indirection through ctx->perm[idx]
 		// which is the key optimization for this "fast" variant
 		// ctx->permGrad1[i] already contains GRADIENTS_1D[ctx->perm[i]],
-		// so we just need to look up by base_idx directly
-		int idx0 = base_idx;
-		int idx1 = (base_idx + 1) & PMASK;
+		// so we need to look up using the permuted index
+		int idx0 = ctx->perm[base_idx];
+		int idx1 = ctx->perm[(base_idx + 1) & PMASK];
 		
 		// Get gradient values from the pre-computed table
 		// These have been pre-divided by N1 in setup_gradients()
