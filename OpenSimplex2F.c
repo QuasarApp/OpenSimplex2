@@ -583,6 +583,27 @@ static void setup_lattice_points(void)
 	}
 }
 
+static void setup_lattice_points_5D(void)
+{
+	static int already_did = 0;
+	int i;
+
+	if (already_did)
+		return;
+	already_did = 1;
+
+	// Generate all 32 vertices of the 5D hypercube (2^5 = 32)
+	for (i = 0; i < 32; i++) {
+		VERTICES_5D[i] = new_LatticePoint5D(
+			(i >> 0) & 1,
+			(i >> 1) & 1,
+			(i >> 2) & 1,
+			(i >> 3) & 1,
+			(i >> 4) & 1
+		);
+	}
+}
+
 /* Free up all the LatticePoint stuff allocated in setup_lattice_points() */
 void OpenSimplex2F_shutdown(void)
 {
@@ -617,6 +638,13 @@ void OpenSimplex2F_shutdown(void)
 			VERTICES_4D[i] = NULL;
 		}
 	}
+
+	for (i = 0; (size_t) i < ARRAYSIZE(VERTICES_5D); i++) {
+		if (VERTICES_5D[i]) {
+			free(VERTICES_5D[i]);
+			VERTICES_5D[i] = NULL;
+		}
+	}
 }
 
 void OpenSimplex2F_free(struct OpenSimplex2F_context *ctx)
@@ -643,6 +671,7 @@ int OpenSimplex2F(int64_t seed, struct OpenSimplex2F_context **ctx)
 
 	setup_gradients();
 	setup_lattice_points();
+	setup_lattice_points_5D();
 
 	source = calloc(1, sizeof(*source) * PSIZE);
 	if (!source)
