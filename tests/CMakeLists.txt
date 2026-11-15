@@ -27,10 +27,10 @@ set(SOURCE_1D_C
     "${CMAKE_CURRENT_SOURCE_DIR}/test_1d_simple.c"
 )
 
-add_executable(${CURRENT_PROJECT}_1d ${SOURCE_1D_C})
-target_include_directories(${CURRENT_PROJECT}_1d PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
-target_compile_options(${CURRENT_PROJECT}_1d PRIVATE -Wall -Wextra --pedantic)
-target_link_libraries(${CURRENT_PROJECT}_1d PRIVATE OpenSimplex2Interface m)
+add_executable(test_1d_simple ${SOURCE_1D_C})
+target_include_directories(test_1d_simple PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
+target_compile_options(test_1d_simple PRIVATE -Wall -Wextra --pedantic)
+target_link_libraries(test_1d_simple PRIVATE OpenSimplex2Interface m)
 
 initTests()
-addTests(${PROJECT_NAME}_1d ${CURRENT_PROJECT}_1d)
+addTests(test_1d_simple test_1d_simple)
