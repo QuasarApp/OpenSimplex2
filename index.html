@@ -404,6 +404,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#c-1d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C (1D)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#c_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -609,6 +620,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#c-1d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C (1D)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#c_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -717,7 +739,7 @@
 <li>3D is implemented by constructing a rotated body-centered-cubic grid as the offset union of two rotated cubic grids, and finding the closest two points on each.</li>
 <li>4D is implemented using 5 offset copies of the dual (reverse-skewed) grid to produce the target grid. This technique generalizes to any number of dimensions.</li>
 <li>The bundled 2D function is just 2D Simplex with a nice gradient table.</li>
-<li>The C implementation provides the OpenSimplex2(F) noise in 2D, 3D and 4D.</li>
+<li>The C implementation provides the OpenSimplex2(F) noise in 1D, 2D, 3D and 4D.</li>
 </ul>
 <h3 id="shaders">Shaders<a class="headerlink" href="#shaders" title="Permanent link">&para;</a></h3>
 <p>The <code>glsl/</code> and <code>hlsl/</code> directories provide GLSL and HLSL shader versions of
@@ -738,6 +760,26 @@ are located at the root of this repository.</p>
 <span class="p">}</span>
 
 <span class="cm">/* 2D, 3D and 4D noise, each in several lattice orientations. */</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">n2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise2</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">n3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise3_XYBeforeZ</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">n4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise4_XYBeforeZW</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
+
+<span class="cm">/* Release the context and the singleton lattice point data. */</span>
+<span class="n">OpenSimplex2F_free</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
+<span class="n">OpenSimplex2F_shutdown</span><span class="p">();</span>
+</code></pre></div>
+<h3 id="c-1d">C (1D)<a class="headerlink" href="#c-1d" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;OpenSimplex2F.h&gt;</span>
+
+<span class="cm">/* Allocate and initialize the noise context (0 on success). */</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">OpenSimplex2F_context</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">OpenSimplex2F</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ctx</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="cm">/* context creation failed */</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cm">/* 1D, 2D, 3D and 4D noise, each in several lattice orientations. */</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">n1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise1</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
 <span class="kt">double</span><span class="w"> </span><span class="n">n2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise2</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
 <span class="kt">double</span><span class="w"> </span><span class="n">n3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise3_XYBeforeZ</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
 <span class="kt">double</span><span class="w"> </span><span class="n">n4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise4_XYBeforeZW</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>

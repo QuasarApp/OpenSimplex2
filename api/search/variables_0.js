@@ -1,7 +1,7 @@
 var searchData=
 [
   ['dw_0',['dw',['../structGrad4.html#ae6fb6a26573abc696c1116b23b6e1b98',1,'Grad4::dw'],['../structLatticePoint4D.html#abce275535dbd5281e9b15dc79e8f0fb3',1,'LatticePoint4D::dw']]],
-  ['dx_1',['dx',['../structGrad2.html#a9a27d80de687ef099fe0b13058a1fab8',1,'Grad2::dx'],['../structGrad3.html#ac41acc0e7fba7087810f0e61f07ca5b1',1,'Grad3::dx'],['../structGrad4.html#a9f5e900b4c5c8a11d6b407f33aeec3e7',1,'Grad4::dx'],['../structLatticePoint2D.html#a83f7cd55609c835008c0fa02e1091457',1,'LatticePoint2D::dx'],['../structLatticePoint4D.html#a3e1e0c3b9a7fd5aaded788d548619392',1,'LatticePoint4D::dx']]],
+  ['dx_1',['dx',['../structGrad1.html#a237ffb276df8483c6a1955f7d07c5907',1,'Grad1::dx'],['../structGrad2.html#a9a27d80de687ef099fe0b13058a1fab8',1,'Grad2::dx'],['../structGrad3.html#ac41acc0e7fba7087810f0e61f07ca5b1',1,'Grad3::dx'],['../structGrad4.html#a9f5e900b4c5c8a11d6b407f33aeec3e7',1,'Grad4::dx'],['../structLatticePoint2D.html#a83f7cd55609c835008c0fa02e1091457',1,'LatticePoint2D::dx'],['../structLatticePoint4D.html#a3e1e0c3b9a7fd5aaded788d548619392',1,'LatticePoint4D::dx']]],
   ['dxr_2',['dxr',['../structLatticePoint3D.html#aec32c8f45425d1fea998c70209a04767',1,'LatticePoint3D']]],
   ['dy_3',['dy',['../structGrad2.html#a35c4b77a7db95b4f17bef8d11b27f1b6',1,'Grad2::dy'],['../structGrad3.html#a197d2cbf5fb5e4e85294f4c4186a8faf',1,'Grad3::dy'],['../structGrad4.html#a448d0359450881c3195026e7e8299ed3',1,'Grad4::dy'],['../structLatticePoint2D.html#a69383fcd2e2d69f5507ff368c8354ccd',1,'LatticePoint2D::dy'],['../structLatticePoint4D.html#a5b4b20970a6cd970b7bf76c5ab029b69',1,'LatticePoint4D::dy']]],
   ['dyr_4',['dyr',['../structLatticePoint3D.html#a898d40ce55ad1fbb43a50aeb9655df27',1,'LatticePoint3D']]],

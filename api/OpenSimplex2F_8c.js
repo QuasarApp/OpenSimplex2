@@ -1,5 +1,6 @@
 var OpenSimplex2F_8c =
 [
+    [ "Grad1", "structGrad1.html", "structGrad1" ],
     [ "Grad2", "structGrad2.html", "structGrad2" ],
     [ "Grad3", "structGrad3.html", "structGrad3" ],
     [ "Grad4", "structGrad4.html", "structGrad4" ],
@@ -28,6 +29,8 @@ var OpenSimplex2F_8c =
     [ "PSIZE", "OpenSimplex2F_8c.html#a69beff7cd62d1ee993c21243761488ca", null ],
     [ "OpenSimplex2F", "OpenSimplex2F_8c.html#af2921042cca887c6b014cb0f3ecd7d7d", null ],
     [ "OpenSimplex2F_free", "OpenSimplex2F_8c.html#ad078c6dbe7991448eee8fdf2a626be29", null ],
+    [ "OpenSimplex2F_noise1", "OpenSimplex2F_8c.html#ab110fba5c33986805a1ace76f7bdeec5", null ],
+    [ "OpenSimplex2F_noise1_fast", "OpenSimplex2F_8c.html#a4f541a60a29c104accacb35705bc84ac", null ],
     [ "OpenSimplex2F_noise2", "OpenSimplex2F_8c.html#aab04fb6c44803d8743a9356ae7790db0", null ],
     [ "OpenSimplex2F_noise2_XBeforeY", "OpenSimplex2F_8c.html#a4de7f329ed0a5fa51bd8a1cb45be2b91", null ],
     [ "OpenSimplex2F_noise3_Classic", "OpenSimplex2F_8c.html#a9fe7317c93f31a2e51486cda798a4aa7", null ],

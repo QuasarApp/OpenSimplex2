@@ -1,5 +1,6 @@
 var annotated_dup =
 [
+    [ "Grad1", "structGrad1.html", "structGrad1" ],
     [ "Grad2", "structGrad2.html", "structGrad2" ],
     [ "Grad3", "structGrad3.html", "structGrad3" ],
     [ "Grad4", "structGrad4.html", "structGrad4" ],

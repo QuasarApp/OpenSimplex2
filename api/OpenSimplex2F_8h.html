@@ -26,7 +26,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">OpenSimplex2<span id="projectnumber">&#160;1.0.139.570a0cb</span>
+   <div id="projectname">OpenSimplex2<span id="projectnumber">&#160;1.0.170.ca4d40c</span>
    </div>
    <div id="projectbrief">The most fast implementation of the OpenSimplex noise (2D, 3D and 4D) in C</div>
   </td>
@@ -136,6 +136,10 @@ Functions</h2></td></tr>
 <tr class="memitem:af2921042cca887c6b014cb0f3ecd7d7d" id="r_af2921042cca887c6b014cb0f3ecd7d7d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af2921042cca887c6b014cb0f3ecd7d7d">OpenSimplex2F</a> (int64_t seed, struct <a class="el" href="structOpenSimplex2F__context.html">OpenSimplex2F_context</a> **ctx)</td></tr>
 <tr class="memitem:ad078c6dbe7991448eee8fdf2a626be29" id="r_ad078c6dbe7991448eee8fdf2a626be29"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad078c6dbe7991448eee8fdf2a626be29">OpenSimplex2F_free</a> (struct <a class="el" href="structOpenSimplex2F__context.html">OpenSimplex2F_context</a> *ctx)</td></tr>
 <tr class="memitem:ae27858ac2e0a39adf9abea55e625c90b" id="r_ae27858ac2e0a39adf9abea55e625c90b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae27858ac2e0a39adf9abea55e625c90b">OpenSimplex2F_shutdown</a> (void)</td></tr>
+<tr class="memitem:ab110fba5c33986805a1ace76f7bdeec5" id="r_ab110fba5c33986805a1ace76f7bdeec5"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab110fba5c33986805a1ace76f7bdeec5">OpenSimplex2F_noise1</a> (struct <a class="el" href="structOpenSimplex2F__context.html">OpenSimplex2F_context</a> *ctx, double x)</td></tr>
+<tr class="memdesc:ab110fba5c33986805a1ace76f7bdeec5"><td class="mdescLeft">&#160;</td><td class="mdescRight">1D Simplex noise - super fast implementation.  <br /></td></tr>
+<tr class="memitem:a4f541a60a29c104accacb35705bc84ac" id="r_a4f541a60a29c104accacb35705bc84ac"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4f541a60a29c104accacb35705bc84ac">OpenSimplex2F_noise1_fast</a> (struct <a class="el" href="structOpenSimplex2F__context.html">OpenSimplex2F_context</a> *ctx, double x)</td></tr>
+<tr class="memdesc:a4f541a60a29c104accacb35705bc84ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">1D Simplex noise - ultra fast implementation with pre-computed gradients.  <br /></td></tr>
 <tr class="memitem:aab04fb6c44803d8743a9356ae7790db0" id="r_aab04fb6c44803d8743a9356ae7790db0"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aab04fb6c44803d8743a9356ae7790db0">OpenSimplex2F_noise2</a> (struct <a class="el" href="structOpenSimplex2F__context.html">OpenSimplex2F_context</a> *ctx, double x, double y)</td></tr>
 <tr class="memdesc:aab04fb6c44803d8743a9356ae7790db0"><td class="mdescLeft">&#160;</td><td class="mdescRight">2D Simplex noise, standard lattice orientation.  <br /></td></tr>
 <tr class="memitem:a4de7f329ed0a5fa51bd8a1cb45be2b91" id="r_a4de7f329ed0a5fa51bd8a1cb45be2b91"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4de7f329ed0a5fa51bd8a1cb45be2b91">OpenSimplex2F_noise2_XBeforeY</a> (struct <a class="el" href="structOpenSimplex2F__context.html">OpenSimplex2F_context</a> *ctx, double x, double y)</td></tr>
@@ -255,6 +259,91 @@ Here is the caller graph for this function:</div>
 <area shape="rect" href="OpenSimplex2F_8c.html#af2921042cca887c6b014cb0f3ecd7d7d" title=" " alt="" coords="5,29,130,57"/>
 <area shape="poly" title=" " alt="" coords="159,43,130,46,130,41,165,43"/>
 <area shape="poly" title=" " alt="" coords="98,14,88,10,67,8,48,10,37,15,35,20,40,29,34,29,29,20,34,11,47,5,68,3,90,5,103,14"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ab110fba5c33986805a1ace76f7bdeec5" name="ab110fba5c33986805a1ace76f7bdeec5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab110fba5c33986805a1ace76f7bdeec5">&#9670;&#160;</a></span>OpenSimplex2F_noise1()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double OpenSimplex2F_noise1 </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structOpenSimplex2F__context.html">OpenSimplex2F_context</a> *</td>          <td class="paramname"><span class="paramname"><em>ctx</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>x</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>1D Simplex noise - super fast implementation. </p>
+<p>This is a highly optimized version that removes unnecessary branches and combines the two point calculations for maximum speed. Returns values in the same range as 2D/3D/4D noise (~[-1, 1]). </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="OpenSimplex2F_8h_ab110fba5c33986805a1ace76f7bdeec5_cgraph.png" border="0" usemap="#aOpenSimplex2F_8h_ab110fba5c33986805a1ace76f7bdeec5_cgraph" loading="lazy" alt=""/></div>
+<map name="aOpenSimplex2F_8h_ab110fba5c33986805a1ace76f7bdeec5_cgraph" id="aOpenSimplex2F_8h_ab110fba5c33986805a1ace76f7bdeec5_cgraph">
+<area shape="rect" title="1D Simplex noise &#45; super fast implementation." alt="" coords="5,29,180,57"/>
+<area shape="poly" title=" " alt="" coords="62,28,57,20,61,11,73,5,93,3,113,5,126,14,121,14,112,10,92,8,75,10,65,15,63,20,67,29"/>
+</map>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="OpenSimplex2F_8h_ab110fba5c33986805a1ace76f7bdeec5_icgraph.png" border="0" usemap="#aOpenSimplex2F_8h_ab110fba5c33986805a1ace76f7bdeec5_icgraph" loading="lazy" alt=""/></div>
+<map name="aOpenSimplex2F_8h_ab110fba5c33986805a1ace76f7bdeec5_icgraph" id="aOpenSimplex2F_8h_ab110fba5c33986805a1ace76f7bdeec5_icgraph">
+<area shape="rect" title="1D Simplex noise &#45; super fast implementation." alt="" coords="5,29,180,57"/>
+<area shape="poly" title=" " alt="" coords="121,14,112,10,92,8,75,10,65,15,63,20,67,29,62,28,57,20,61,11,73,5,93,3,113,5,126,14"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a4f541a60a29c104accacb35705bc84ac" name="a4f541a60a29c104accacb35705bc84ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f541a60a29c104accacb35705bc84ac">&#9670;&#160;</a></span>OpenSimplex2F_noise1_fast()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double OpenSimplex2F_noise1_fast </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structOpenSimplex2F__context.html">OpenSimplex2F_context</a> *</td>          <td class="paramname"><span class="paramname"><em>ctx</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>x</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>1D Simplex noise - ultra fast implementation with pre-computed gradients. </p>
+<p>Performance: ~10-15% faster than OpenSimplex2F_noise1 due to reduced memory indirection. Returns values in the same range as 2D/3D/4D noise (~[-1, 1]).</p>
+<p>Performance: ~10-15% faster than OpenSimplex2F_noise1 due to reduced memory indirection. This version uses ctx-&gt;permGrad1 which is pre-populated to avoid the extra memory lookup through ctx-&gt;perm[idx]. Returns values in the same range as 2D/3D/4D noise (~[-1, 1]). </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="OpenSimplex2F_8h_a4f541a60a29c104accacb35705bc84ac_cgraph.png" border="0" usemap="#aOpenSimplex2F_8h_a4f541a60a29c104accacb35705bc84ac_cgraph" loading="lazy" alt=""/></div>
+<map name="aOpenSimplex2F_8h_a4f541a60a29c104accacb35705bc84ac_cgraph" id="aOpenSimplex2F_8h_a4f541a60a29c104accacb35705bc84ac_cgraph">
+<area shape="rect" title="1D Simplex noise &#45; ultra fast implementation with pre&#45;computed gradients." alt="" coords="5,29,212,57"/>
+<area shape="poly" title=" " alt="" coords="73,28,67,20,72,11,86,5,109,3,133,5,147,14,142,14,131,10,108,8,87,10,75,15,73,20,78,29"/>
+</map>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="OpenSimplex2F_8h_a4f541a60a29c104accacb35705bc84ac_icgraph.png" border="0" usemap="#aOpenSimplex2F_8h_a4f541a60a29c104accacb35705bc84ac_icgraph" loading="lazy" alt=""/></div>
+<map name="aOpenSimplex2F_8h_a4f541a60a29c104accacb35705bc84ac_icgraph" id="aOpenSimplex2F_8h_a4f541a60a29c104accacb35705bc84ac_icgraph">
+<area shape="rect" title="1D Simplex noise &#45; ultra fast implementation with pre&#45;computed gradients." alt="" coords="5,29,212,57"/>
+<area shape="poly" title=" " alt="" coords="142,14,131,10,108,8,87,10,75,15,73,20,78,29,73,28,67,20,72,11,86,5,109,3,133,5,147,14"/>
 </map>
 </div>
 
