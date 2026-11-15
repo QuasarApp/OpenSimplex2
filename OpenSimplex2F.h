@@ -56,7 +56,6 @@ void OpenSimplex2F_shutdown(void);
  * 1D Simplex noise - super fast implementation.
  * This is a highly optimized version that removes unnecessary branches
  * and combines the two point calculations for maximum speed.
- * Returns values in the same range as 2D/3D/4D noise ([-1, 1]).
  * Returns values in the same range as 2D/3D/4D noise (~[-1, 1]).
  */
 double OpenSimplex2F_noise1(struct OpenSimplex2F_context *ctx, double x);
