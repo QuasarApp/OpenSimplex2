@@ -75,5 +75,13 @@ var OpenSimplex2F_8c =
     [ "OpenSimplex2F_noise4_XYZBeforeW", "OpenSimplex2F_8c.html#a6bf0b31c4e94be30a45b8c9a1b5c43d1", null ],
     [ "OpenSimplex2F_noise4_XZBeforeYW", "OpenSimplex2F_8c.html#adb39faa67b72e2f5719a017afd875d3e", null ],
     [ "OpenSimplex2F_noise5", "OpenSimplex2F_8c.html#aaa0ef53318eff1fdbf1c33d0ce2ae4e9", null ],
+    [ "OpenSimplex2F_noise5_XYBeforeZV", "OpenSimplex2F_8c.html#aff75fbaa2878c1424f9c1ba6e353ebdb", null ],
+    [ "OpenSimplex2F_noise5_XYBeforeZW", "OpenSimplex2F_8c.html#a34d4b850f3e70361dcf4b1ddd729be86", null ],
+    [ "OpenSimplex2F_noise5_XYZBeforeWV", "OpenSimplex2F_8c.html#a684239e8c9e0f486137df1eedc84cf07", null ],
+    [ "OpenSimplex2F_noise5_XZBeforeYV", "OpenSimplex2F_8c.html#ad232473e4c2006364f296a27b60ec9de", null ],
+    [ "OpenSimplex2F_noise5_XZBeforeYW", "OpenSimplex2F_8c.html#ae357d5f6fcd44e384f1c227b0c60b452", null ],
+    [ "OpenSimplex2F_noise5_YWBeforeXZV", "OpenSimplex2F_8c.html#a9bebf4bacad26d1443d2696efa10ff24", null ],
+    [ "OpenSimplex2F_noise5_YZBeforeXW", "OpenSimplex2F_8c.html#a2f67a1c910a81a0682ab4da01a4a0e73", null ],
+    [ "OpenSimplex2F_noise5_ZWBeforeXYV", "OpenSimplex2F_8c.html#a865771b7dd0e9a12de942a8825a93826", null ],
     [ "OpenSimplex2F_shutdown", "OpenSimplex2F_8c.html#ae27858ac2e0a39adf9abea55e625c90b", null ]
 ];

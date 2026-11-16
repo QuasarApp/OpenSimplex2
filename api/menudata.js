@@ -57,7 +57,8 @@ var menudata={children:[
 {text:"i",url:"globals.html#index_i"},
 {text:"o",url:"globals.html#index_o"},
 {text:"p",url:"globals.html#index_p"}]},
-{text:"Functions",url:"globals_func.html"},
+{text:"Functions",url:"globals_func.html",children:[
+{text:"o",url:"globals_func.html#index_o"}]},
 {text:"Macros",url:"globals_defs.html",children:[
 {text:"a",url:"globals_defs.html#index_a"},
 {text:"b",url:"globals_defs.html#index_b"},
