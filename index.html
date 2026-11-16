@@ -711,7 +711,7 @@
 
 
 <h1 id="opensimplex-2">OpenSimplex 2<a class="headerlink" href="#opensimplex-2" title="Permanent link">&para;</a></h1>
-<p>Successors to OpenSimplex Noise, plus updated OpenSimplex. Includes 2D, 3D, and 4D noise.</p>
+<p>Successors to OpenSimplex Noise, plus updated OpenSimplex. Includes 2D, 3D, 4D, and 5D noise.</p>
 <h2 id="about-this-fork">About this fork<a class="headerlink" href="#about-this-fork" title="Permanent link">&para;</a></h2>
 <p>This is the QuasarApp community fork of
 <a href="https://github.com/KdotJPG/OpenSimplex2">KdotJPG/OpenSimplex2</a>.</p>
@@ -759,7 +759,7 @@ are located at the root of this repository.</p>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="cm">/* 2D, 3D and 4D noise, each in several lattice orientations. */</span>
+<span class="cm">/* 2D, 3D, 4D, and 5D noise, each in several lattice orientations. */</span>
 <span class="kt">double</span><span class="w"> </span><span class="n">n2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise2</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
 <span class="kt">double</span><span class="w"> </span><span class="n">n3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise3_XYBeforeZ</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
 <span class="kt">double</span><span class="w"> </span><span class="n">n4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise4_XYBeforeZW</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
@@ -778,7 +778,7 @@ are located at the root of this repository.</p>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="cm">/* 1D, 2D, 3D and 4D noise, each in several lattice orientations. */</span>
+<span class="cm">/* 1D, 2D, 3D, 4D, and 5D noise, each in several lattice orientations. */</span>
 <span class="kt">double</span><span class="w"> </span><span class="n">n1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise1</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
 <span class="kt">double</span><span class="w"> </span><span class="n">n2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise2</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
 <span class="kt">double</span><span class="w"> </span><span class="n">n3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OpenSimplex2F_noise3_XYBeforeZ</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
@@ -828,7 +828,7 @@ subdirectory — for example as a git submodule:</p>
 <div class="highlight"><pre><span></span><code>make
 </code></pre></div>
 <p>The Makefile also builds the <code>test_OpenSimplex2F</code> binary (test source in
-<code>tests/test_OpenSimplex2F.c</code>), which writes 2D/3D/4D noise images
+<code>tests/test_OpenSimplex2F.c</code>), which writes 2D/3D/4D/5D noise images
 (requires libpng).</p>
 <h3 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">&para;</a></h3>
 <p>The tests use the <a href="https://cmake.org/cmake/help/book/mastering-cmake/chapter/Testing%20With%20CMake%20and%20CTest.html">CTest</a>
@@ -849,7 +849,7 @@ cmake --build build --target test
 <p>or by passing the test name to the executable:</p>
 <div class="highlight"><pre><span></span><code>build/tests/OpenSimplex2tests test_noise3
 </code></pre></div>
-<p>The tests write 2D/3D/4D noise images (requires libpng) into the test
+<p>The tests write 2D/3D/4D/5D noise images (requires libpng) into the test
 directory of the build tree and check that all noise values stay within
 the expected <code>[-1, 1]</code> range.</p>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
