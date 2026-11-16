@@ -11,6 +11,11 @@
  *   - test_noise4()  4D noise:  noise4_Classic (3-octave blend),
  *                               noise4_XYBeforeZW, noise4_XZBeforeYW,
  *                               noise4_XYZBeforeW
+ *   - test_noise5()  5D noise:  noise5 (6-octave blend),
+ *                           noise5_XYBeforeZW, noise5_XZBeforeYW,
+ *                           noise5_XYZBeforeWV, noise5_XYBeforeZV,
+ *                           noise5_XZBeforeYV, noise5_YZBeforeXW,
+ *                           noise5_YWBeforeXZV, noise5_ZWBeforeXYV
  *
  * main() only selects and runs the tests: with no argument it runs all of
  * them, with one argument it runs the test with that name only. The tests
@@ -48,6 +53,7 @@
  * plane, so the extra dimensions are actually exercised. */
 #define Z_OFFSET 0.37
 #define W_OFFSET 0.71
+#define V_OFFSET 0.53
 
 static int write_png_image(const char *filename, unsigned char *pixels, int w, int h, int has_alpha)
 {
@@ -224,6 +230,27 @@ static int check_noise4_variant(struct OpenSimplex2F_context *ctx, const char *n
 	return ok;
 }
 
+/* Range-check one 5D noise variant over a half-resolution grid at
+ * z = Z_OFFSET, w = W_OFFSET, v = V_OFFSET. Returns 1 on pass, 0 on fail. */
+static int check_noise5_variant(struct OpenSimplex2F_context *ctx, const char *name,
+			double (*f)(struct OpenSimplex2F_context *, double, double, double, double, double))
+{
+	struct noise_stats s;
+	int x, y, ok;
+
+	stats_init(&s);
+	for (y = 0; y < HEIGHT; y += 2)
+		for (x = 0; x < WIDTH; x += 2)
+			stats_add(&s, f(ctx, (double) x / FEATURE_SIZE,
+				(double) y / FEATURE_SIZE, Z_OFFSET, W_OFFSET, V_OFFSET));
+	ok = stats_in_range(&s);
+	printf("  %-40s min=% .6f max=% .6f ... %s\n",
+	       name, s.min, s.max, ok ? "PASS" : "FAIL");
+	if (!ok)
+		printf("       noise value outside the expected range [-1, 1]\n");
+	return ok;
+}
+
 /* ---------------------------------------------------------------------------
  * Test functions. Each one is a separate test case of the main test
  * executable and is registered as its own CTest test. Every function
@@ -361,6 +388,65 @@ static int test_noise4(void)
 }
 
 /* ---------------------------------------------------------------------------
+ * Test the 5D noise function.
+ * ------------------------------------------------------------------------- */
+static int test_noise5(void)
+{
+	static uint32_t image[HEIGHT][WIDTH];
+	struct OpenSimplex2F_context *ctx = NULL;
+	struct noise_stats s;
+	uint32_t rgb;
+	int x, y, octave, ok = 1;
+
+	if (OpenSimplex2F(TEST_SEED, &ctx) != 0) {
+		printf("  OpenSimplex2F() failed\n");
+		return 1;
+	}
+
+	stats_init(&s);
+	for (y = 0; y < HEIGHT; y++) {
+		for (x = 0; x < WIDTH; x++) {
+			double value = 0.0;
+			for (octave = 0; octave < 6; octave++) {
+				double freq = 1.0, fvals[6] = {1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125};
+				double v = OpenSimplex2F_noise5(ctx, (double)x / FEATURE_SIZE * fvals[octave],
+					(double)y / FEATURE_SIZE * fvals[octave], 0.0, 0.0, 0.0);
+				value += v;
+			}
+			value /= 10.75;
+			stats_add(&s, value);
+			rgb = 0x010101 * (uint32_t)((value + 1) * 127.5);
+			image[y][x] = ((uint32_t)0x0ff << 24) | (rgb);
+		}
+	}
+
+	if (!report_test("OpenSimplex2F_noise5 (6 octaves)", "test5d.png",
+		 write_png_image("test5d.png", (unsigned char *)image, WIDTH, HEIGHT, 1),
+		 &s))
+		ok = 0;
+
+	if (!check_noise5_variant(ctx, "OpenSimplex2F_noise5_XYBeforeZW", OpenSimplex2F_noise5_XYBeforeZW))
+		ok = 0;
+	if (!check_noise5_variant(ctx, "OpenSimplex2F_noise5_XZBeforeYW", OpenSimplex2F_noise5_XZBeforeYW))
+		ok = 0;
+	if (!check_noise5_variant(ctx, "OpenSimplex2F_noise5_XYZBeforeWV", OpenSimplex2F_noise5_XYZBeforeWV))
+		ok = 0;
+	if (!check_noise5_variant(ctx, "OpenSimplex2F_noise5_XYBeforeZV", OpenSimplex2F_noise5_XYBeforeZV))
+		ok = 0;
+	if (!check_noise5_variant(ctx, "OpenSimplex2F_noise5_XZBeforeYV", OpenSimplex2F_noise5_XZBeforeYV))
+		ok = 0;
+	if (!check_noise5_variant(ctx, "OpenSimplex2F_noise5_YZBeforeXW", OpenSimplex2F_noise5_YZBeforeXW))
+		ok = 0;
+	if (!check_noise5_variant(ctx, "OpenSimplex2F_noise5_YWBeforeXZV", OpenSimplex2F_noise5_YWBeforeXZV))
+		ok = 0;
+	if (!check_noise5_variant(ctx, "OpenSimplex2F_noise5_ZWBeforeXYV", OpenSimplex2F_noise5_ZWBeforeXYV))
+		ok = 0;
+
+	OpenSimplex2F_free(ctx);
+	return ok ? 0 : 1;
+}
+
+/* ---------------------------------------------------------------------------
  * Test registry and the main test executable entry point.
  * ------------------------------------------------------------------------- */
 
@@ -373,6 +459,7 @@ static const struct test_case all_tests[] = {
 	{ "test_noise2", test_noise2 },
 	{ "test_noise3", test_noise3 },
 	{ "test_noise4", test_noise4 },
+	{ "test_noise5", test_noise5 },
 };
 
 #define TEST_COUNT (sizeof(all_tests) / sizeof(all_tests[0]))
