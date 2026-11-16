@@ -34,7 +34,7 @@ Gradient vector tables were also revisited to improve probability symmetry in bo
  * 3D is implemented by constructing a rotated body-centered-cubic grid as the offset union of two rotated cubic grids, and finding the closest two points on each.
  * 4D is implemented using 5 offset copies of the dual (reverse-skewed) grid to produce the target grid. This technique generalizes to any number of dimensions.
  * The bundled 2D function is just 2D Simplex with a nice gradient table.
- * The C implementation provides the OpenSimplex2(F) noise in 1D, 2D, 3D and 4D.
+ * The C implementation provides the OpenSimplex2(F) noise in 1D, 2D, 3D, 4D and 5D.
 
 ### Shaders
 
@@ -64,6 +64,7 @@ if (OpenSimplex2F(42, &ctx) != 0) {
 double n2 = OpenSimplex2F_noise2(ctx, 0.5, 0.5);
 double n3 = OpenSimplex2F_noise3_XYBeforeZ(ctx, 0.5, 0.5, 0.5);
 double n4 = OpenSimplex2F_noise4_XYBeforeZW(ctx, 0.5, 0.5, 0.5, 0.5);
+double n5 = OpenSimplex2F_noise5(ctx, 0.5, 0.5, 0.5, 0.5, 0.5);
 
 /* Release the context and the singleton lattice point data. */
 OpenSimplex2F_free(ctx);
@@ -87,6 +88,7 @@ double n1 = OpenSimplex2F_noise1(ctx, 0.5);
 double n2 = OpenSimplex2F_noise2(ctx, 0.5, 0.5);
 double n3 = OpenSimplex2F_noise3_XYBeforeZ(ctx, 0.5, 0.5, 0.5);
 double n4 = OpenSimplex2F_noise4_XYBeforeZW(ctx, 0.5, 0.5, 0.5, 0.5);
+double n5 = OpenSimplex2F_noise5(ctx, 0.5, 0.5, 0.5, 0.5, 0.5);
 
 /* Release the context and the singleton lattice point data. */
 OpenSimplex2F_free(ctx);
@@ -159,7 +161,7 @@ The Makefile also builds the `test_OpenSimplex2F` binary (test source in
 The tests use the [CTest](https://cmake.org/cmake/help/book/mastering-cmake/chapter/Testing%20With%20CMake%20and%20CTest.html)
 framework. The main test executable (`OpenSimplex2tests`, built from
 `tests/test_OpenSimplex2F.c`) implements every test in its own function
-(`test_noise2`, `test_noise3`, `test_noise4`); each of them is registered
+(`test_noise1`, `test_noise2`, `test_noise3`, `test_noise4`, `test_noise5`); each of them is registered
 as a separate CTest test (see `tests/CMakeLists.txt`).
 
 To build the tests, keep the `OPENSIMPLEX2_TESTS` option enabled (default
