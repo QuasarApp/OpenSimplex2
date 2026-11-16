@@ -1,6 +1,6 @@
 # OpenSimplex 2
 
-Successors to OpenSimplex Noise, plus updated OpenSimplex. Includes 2D, 3D, and 4D noise.
+Successors to OpenSimplex Noise, plus updated OpenSimplex. Includes 2D, 3D, 4D, and 5D noise.
 
 ## About this fork
 
@@ -60,7 +60,7 @@ if (OpenSimplex2F(42, &ctx) != 0) {
     return 1;
 }
 
-/* 2D, 3D and 4D noise, each in several lattice orientations. */
+/* 2D, 3D, 4D, and 5D noise, each in several lattice orientations. */
 double n2 = OpenSimplex2F_noise2(ctx, 0.5, 0.5);
 double n3 = OpenSimplex2F_noise3_XYBeforeZ(ctx, 0.5, 0.5, 0.5);
 double n4 = OpenSimplex2F_noise4_XYBeforeZW(ctx, 0.5, 0.5, 0.5, 0.5);
@@ -82,7 +82,7 @@ if (OpenSimplex2F(42, &ctx) != 0) {
     return 1;
 }
 
-/* 1D, 2D, 3D and 4D noise, each in several lattice orientations. */
+/* 1D, 2D, 3D, 4D, and 5D noise, each in several lattice orientations. */
 double n1 = OpenSimplex2F_noise1(ctx, 0.5);
 double n2 = OpenSimplex2F_noise2(ctx, 0.5, 0.5);
 double n3 = OpenSimplex2F_noise3_XYBeforeZ(ctx, 0.5, 0.5, 0.5);
@@ -151,7 +151,7 @@ make
 ```
 
 The Makefile also builds the `test_OpenSimplex2F` binary (test source in
-`tests/test_OpenSimplex2F.c`), which writes 2D/3D/4D noise images
+`tests/test_OpenSimplex2F.c`), which writes 2D/3D/4D/5D noise images
 (requires libpng).
 
 ### Tests
@@ -184,7 +184,7 @@ or by passing the test name to the executable:
 build/tests/OpenSimplex2tests test_noise3
 ```
 
-The tests write 2D/3D/4D noise images (requires libpng) into the test
+The tests write 2D/3D/4D/5D noise images (requires libpng) into the test
 directory of the build tree and check that all noise values stay within
 the expected `[-1, 1]` range.
 
